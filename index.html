@@ -3,684 +3,316 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smartism — Art Gallery</title>
+  <title>Smartism</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="icon" type="image/x-icon"  href="favicon.ico">
   <style>
-    :root {
-      --bg: #0c0c0c;
-      --surface: #161616;
-      --border: #222;
-      --accent: #c9a96e;
-      --accent-dim: rgba(201,169,110,0.15);
-      --text: #e6e6e6;
-      --muted: #666;
-      --card: #111;
-    }
-
+    :root { --gold: #c9a96e; --border: #111; }
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Georgia', 'Times New Roman', serif;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    /* ── Noise texture overlay ── */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-      background-size: 200px 200px;
-      pointer-events: none;
-      z-index: 0;
-      opacity: 0.6;
-    }
+    html  { scroll-behavior: smooth; }
+    body  { background: #000; color: #fff; font-family: Georgia, 'Times New Roman', serif; }
 
     /* ── Header ── */
     header {
-      position: relative;
       text-align: center;
-      padding: 90px 20px 50px;
+      padding: 110px 20px 72px;
       border-bottom: 1px solid var(--border);
-      overflow: hidden;
     }
-
-    header::after {
-      content: '';
-      position: absolute;
-      bottom: -1px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 80px;
-      height: 2px;
-      background: var(--accent);
-    }
-
-    .site-title {
-      font-size: clamp(3rem, 8vw, 7rem);
+    .h-name {
+      font-size: clamp(2.8rem, 7vw, 7rem);
       font-weight: 400;
-      letter-spacing: 0.35em;
+      letter-spacing: .55em;
       text-transform: uppercase;
-      color: var(--text);
       line-height: 1;
+      text-indent: .55em;   /* optical centering vs letter-spacing */
+    }
+    .h-rule {
+      width: 48px; height: 1px; background: var(--gold);
+      margin: 32px auto 24px;
+    }
+    .h-sub {
+      font-size: .78rem; letter-spacing: .5em; text-transform: uppercase;
+      color: #666; font-family: 'Helvetica Neue', Arial, sans-serif;
     }
 
-    .site-subtitle {
-      margin-top: 18px;
-      font-size: 0.78rem;
-      letter-spacing: 0.5em;
-      text-transform: uppercase;
-      color: var(--muted);
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-    }
-
-    .site-meta {
-      margin-top: 10px;
-      font-size: 0.72rem;
-      letter-spacing: 0.3em;
-      color: var(--accent);
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      text-transform: uppercase;
-    }
-
-    /* ── Sticky filter bar ── */
-    .filter-bar {
-      position: sticky;
-      top: 0;
-      z-index: 200;
-      background: rgba(12, 12, 12, 0.96);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 14px 20px;
-    }
-
-    .filter-btn {
-      background: transparent;
-      border: 1px solid #2a2a2a;
-      color: var(--muted);
-      padding: 5px 14px;
-      cursor: pointer;
-      font-size: 0.7rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      transition: all 0.2s ease;
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      border-radius: 0;
-      white-space: nowrap;
-    }
-
-    .filter-btn:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
-    .filter-btn.active {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #0c0c0c;
-      font-weight: 700;
-    }
-
-    .filter-btn .count {
-      opacity: 0.6;
-      margin-left: 4px;
-      font-size: 0.65rem;
-    }
-
-    .filter-btn.active .count { opacity: 0.7; }
-
-    /* ── Gallery ── */
-    .gallery-wrap {
-      position: relative;
-      z-index: 1;
-      max-width: 1440px;
+    /* ── Gallery – single column ── */
+    .gallery {
+      max-width: 820px;
       margin: 0 auto;
-      padding: 50px 20px 80px;
+      padding: 90px 44px 110px;
     }
 
-    .year-section { margin-bottom: 70px; }
-    .year-section.hidden { display: none; }
-
-    .year-header {
-      display: flex;
-      align-items: baseline;
-      gap: 16px;
-      margin-bottom: 28px;
-      padding-bottom: 14px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .year-number {
-      font-size: 0.7rem;
-      letter-spacing: 0.5em;
-      color: var(--accent);
-      text-transform: uppercase;
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-    }
-
-    .year-count {
-      font-size: 0.65rem;
-      color: var(--muted);
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      letter-spacing: 0.15em;
-    }
-
-    /* Masonry */
-    .masonry {
-      columns: 4 220px;
-      column-gap: 10px;
-    }
-
+    /* ── Card ── */
     .card {
       break-inside: avoid;
-      margin-bottom: 10px;
-      position: relative;
+      margin-bottom: 70px;
       cursor: pointer;
-      overflow: hidden;
-      background: var(--card);
-      display: block;
+      /* initial state for scroll animation */
+      opacity: 0;
+      transform: translateY(38px);
+      transition: opacity .95s cubic-bezier(.4,0,.2,1),
+                  transform .95s cubic-bezier(.4,0,.2,1);
     }
+    .card.in { opacity: 1; transform: none; }
 
-    .card img {
-      display: block;
-      width: 100%;
-      height: auto;
-      transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                  filter 0.4s ease;
-      filter: brightness(0.88) saturate(0.9);
+    .card-img { position: relative; overflow: hidden; }
+    .card-img img {
+      display: block; width: 100%; height: auto;
+      filter: brightness(.88) saturate(.9);
+      transition: transform .85s cubic-bezier(.25,.46,.45,.94),
+                  filter .65s ease;
     }
-
-    .card:hover img {
-      transform: scale(1.05);
+    .card:hover .card-img img {
+      transform: scale(1.045);
       filter: brightness(1) saturate(1.1);
     }
-
-    .card-overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(
-        to top,
-        rgba(0,0,0,0.88) 0%,
-        rgba(0,0,0,0.2) 40%,
-        transparent 70%
-      );
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      padding: 14px 12px;
-      opacity: 0;
-      transition: opacity 0.3s ease;
+    /* Subtle inner vignette that lifts on hover */
+    .card-img::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.4) 100%);
+      pointer-events: none;
+      transition: opacity .5s ease;
     }
+    .card:hover .card-img::after { opacity: 0; }
 
-    .card:hover .card-overlay { opacity: 1; }
-
+    .card-caption {
+      padding: 20px 2px 0;
+      margin-top: 20px;
+      border-top: 1px solid #161616;
+      text-align: center;
+    }
     .card-title {
-      font-size: 0.78rem;
-      font-style: italic;
-      color: #fff;
-      line-height: 1.4;
-      letter-spacing: 0.02em;
+      font-style: italic; font-size: .95rem;
+      letter-spacing: .04em; line-height: 1.45;
+      color: #d8d8d8;
     }
-
-    .card-year-tag {
-      font-size: 0.62rem;
-      color: var(--accent);
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-      margin-top: 4px;
+    .card-year {
+      display: block;
+      margin-top: 6px;
+      font-size: .58rem; color: var(--gold);
+      letter-spacing: .32em; text-transform: uppercase;
       font-family: 'Helvetica Neue', Arial, sans-serif;
     }
-
-    /* zoom icon */
-    .card::after {
-      content: '⊕';
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      color: rgba(255,255,255,0.7);
-      font-size: 1.1rem;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      pointer-events: none;
-      line-height: 1;
-    }
-
-    .card:hover::after { opacity: 1; }
 
     /* ── Lightbox ── */
-    .lb {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(5, 5, 5, 0.97);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      padding: 60px 70px 80px;
+    #lb {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.98); z-index: 600;
+      align-items: center; justify-content: center;
+      flex-direction: column; padding: 60px 72px 68px;
     }
-
-    .lb.open { display: flex; }
-
-    .lb-image-wrap {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 0;
-      width: 100%;
+    #lb.open { display: flex; }
+    #lb-wrap {
+      flex: 1; min-height: 0; width: 100%;
+      display: flex; align-items: center; justify-content: center;
     }
-
     #lb-img {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
-      display: block;
-      box-shadow: 0 30px 80px rgba(0,0,0,0.8);
-      transition: opacity 0.2s ease;
+      max-width: 100%; max-height: 100%; object-fit: contain; display: block;
+      box-shadow: 0 32px 90px rgba(0,0,0,.9);
+      transition: opacity .2s;
     }
-
-    #lb-img.loading { opacity: 0; }
-
-    .lb-info {
-      text-align: center;
-      padding-top: 20px;
-      flex-shrink: 0;
-    }
-
-    .lb-title {
-      font-style: italic;
-      font-size: 1.05rem;
-      color: var(--text);
-      letter-spacing: 0.05em;
-    }
-
-    .lb-year {
-      font-size: 0.7rem;
-      color: var(--accent);
-      letter-spacing: 0.35em;
-      text-transform: uppercase;
-      margin-top: 6px;
+    #lb-img.fade { opacity: 0; }
+    .lb-info { text-align: center; padding-top: 22px; flex-shrink: 0; }
+    .lb-title { font-style: italic; font-size: 1.05rem; color: #e0e0e0; }
+    .lb-year  {
+      font-size: .62rem; color: var(--gold); letter-spacing: .3em;
+      text-transform: uppercase; margin-top: 7px;
       font-family: 'Helvetica Neue', Arial, sans-serif;
     }
-
-    .lb-close {
-      position: fixed;
-      top: 18px;
-      right: 22px;
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-size: 2.2rem;
-      cursor: pointer;
-      line-height: 1;
-      transition: color 0.2s, transform 0.2s;
-      z-index: 10;
+    #lb-close {
+      position: fixed; top: 18px; right: 22px;
+      background: none; border: none; color: #333;
+      font-size: 2rem; cursor: pointer;
+      transition: color .2s, transform .2s; z-index: 10;
     }
-
-    .lb-close:hover { color: #fff; transform: rotate(90deg); }
-
-    .lb-counter {
-      position: fixed;
-      top: 24px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 0.68rem;
-      color: var(--muted);
-      letter-spacing: 0.3em;
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      text-transform: uppercase;
+    #lb-close:hover { color: #fff; transform: rotate(90deg); }
+    #lb-count {
+      position: fixed; top: 24px; left: 50%; transform: translateX(-50%);
+      font-size: .62rem; color: #2e2e2e; letter-spacing: .3em;
+      font-family: sans-serif; text-transform: uppercase;
     }
-
-    .lb-nav {
-      position: fixed;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: 1px solid #2a2a2a;
-      color: var(--muted);
-      width: 46px;
-      height: 46px;
-      cursor: pointer;
-      font-size: 1.4rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
-      line-height: 1;
+    .lb-arr {
+      position: fixed; top: 50%; transform: translateY(-50%);
+      background: none; border: 1px solid #1c1c1c; color: #333;
+      width: 46px; height: 46px; font-size: 1.3rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .2s;
     }
-
-    .lb-nav:hover { border-color: var(--accent); color: var(--accent); }
-    #lb-prev { left: 16px; }
-    #lb-next { right: 16px; }
-
-    /* Keyboard hint */
-    .lb-hint {
-      position: fixed;
-      bottom: 18px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 0.62rem;
-      color: #333;
-      letter-spacing: 0.2em;
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      text-transform: uppercase;
-      white-space: nowrap;
-    }
+    .lb-arr:hover { border-color: var(--gold); color: var(--gold); }
+    #lb-prev { left: 14px; }
+    #lb-next { right: 14px; }
 
     /* ── Footer ── */
     footer {
-      position: relative;
-      z-index: 1;
       text-align: center;
-      padding: 36px 20px 50px;
+      padding: 52px 20px 64px;
       border-top: 1px solid var(--border);
       font-family: 'Helvetica Neue', Arial, sans-serif;
     }
+    .foot-rule { width: 36px; height: 1px; background: var(--gold); margin: 0 auto 22px; }
+    footer p { font-size: .66rem; color: #2e2e2e; letter-spacing: .28em; text-transform: uppercase; }
+    footer a  { color: var(--gold); text-decoration: none; }
 
-    .footer-line {
-      width: 40px;
-      height: 1px;
-      background: var(--accent);
-      margin: 0 auto 20px;
-    }
-
-    footer p {
-      font-size: 0.72rem;
-      color: var(--muted);
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-    }
-
-    footer a { color: var(--accent); text-decoration: none; }
-    footer a:hover { text-decoration: underline; }
-
-    /* ── Scroll fade-in ── */
-    .card {
-      opacity: 0;
-      transform: translateY(16px);
-      transition: opacity 0.5s ease, transform 0.5s ease, filter 0.4s ease, transform 0.5s cubic-bezier(0.25,0.46,0.45,0.94);
-    }
-
-    .card.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    /* Override hover transform when visible */
-    .card.visible:hover img { transform: scale(1.05); }
-
-    @media (max-width: 640px) {
-      .masonry { columns: 2 140px; }
-      .lb { padding: 50px 50px 70px; }
-      .lb-nav { display: none; }
+    @media (max-width: 680px) {
+      .gallery { columns: 1; padding: 50px 20px 70px; }
+      header   { padding: 72px 20px 52px; }
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1 class="site-title">Smartism</h1>
-    <p class="site-subtitle">Original Paintings</p>
-    <p class="site-meta">2008 – 2017</p>
-  </header>
+<header>
+  <h1 class="h-name">Smartism</h1>
+  <div class="h-rule"></div>
+  <p class="h-sub">Original Paintings</p>
+</header>
 
-  <nav class="filter-bar" id="filter-bar"></nav>
+<div class="gallery" id="gallery"></div>
 
-  <div class="gallery-wrap" id="gallery"></div>
-
-  <!-- Lightbox -->
-  <div class="lb" id="lb">
-    <button class="lb-close" id="lb-close" title="Close (Esc)">×</button>
-    <span class="lb-counter" id="lb-counter"></span>
-    <button class="lb-nav" id="lb-prev" title="Previous (←)">&#8249;</button>
-    <button class="lb-nav" id="lb-next" title="Next (→)">&#8250;</button>
-    <div class="lb-image-wrap">
-      <img id="lb-img" src="" alt="">
-    </div>
-    <div class="lb-info">
-      <p class="lb-title" id="lb-title"></p>
-      <p class="lb-year" id="lb-year"></p>
-    </div>
-    <p class="lb-hint">← → navigate &nbsp;·&nbsp; esc close</p>
+<div id="lb">
+  <button id="lb-close">×</button>
+  <span id="lb-count"></span>
+  <button class="lb-arr" id="lb-prev">&#8249;</button>
+  <button class="lb-arr" id="lb-next">&#8250;</button>
+  <div id="lb-wrap"><img id="lb-img" src="" alt=""></div>
+  <div class="lb-info">
+    <p class="lb-title" id="lb-title"></p>
+    <p class="lb-year"  id="lb-year"></p>
   </div>
+</div>
 
-  <footer>
-    <div class="footer-line"></div>
-    <p>For inquiries: <a href="tel:+31623140683">+31 6 23140683</a></p>
-  </footer>
+<footer>
+  <div class="foot-rule"></div>
+  <p>For inquiries: <a href="tel:+31623140683">+31 6 23140683</a></p>
+</footer>
 
-  <script>
-    const BASE = 'images/';
+<script>
+const B = 'images/';
+const data = [
+  {y:2017,t:'CT16',                                                                    f:'img-20170929-195624-198_orig.jpg'},
+  {y:2017,t:'Rag',                                                                     f:'img-20170714-090208-885_orig.jpg'},
+  {y:2017,t:'36,187 Innocent Deaths',                                                  f:'img-20170908-102002-463_orig.jpg'},
+  {y:2017,t:'Oblivious',                                                               f:'img-20170817-204718-276_orig.jpg'},
+  {y:2017,t:'Storm Undone',                                                            f:'20170702-121841_orig.jpg'},
+  {y:2017,t:'Self',                                                                    f:'20170514-002203_orig.jpg'},
+  {y:2017,t:'Untitled',                                                                f:'editor/20170511-073303.jpeg'},
+  {y:2017,t:'First Impressions of Earth',                                              f:'editor/20170422-105252.jpeg'},
+  {y:2017,t:'Infundibulum',                                                            f:'img-20170513-122248_orig.jpg'},
+  {y:2017,t:'Clearvoyance',                                                            f:'editor/20170417-192851.jpeg'},
+  {y:2017,t:'Words that Warmed, Woed and Won',                                         f:'editor/20170126-075928.jpeg'},
+  {y:2017,t:'Tranquillo Tres',                                                         f:'editor/20170312-121840.jpeg'},
+  {y:2017,t:'Beatific',                                                                f:'published/20170417-192918.jpeg'},
+  {y:2017,t:'Title Unknown',                                                           f:'editor/20170117-183551.jpeg'},
+  {y:2017,t:'Atavistic',                                                               f:'editor/20161209-001240.jpeg'},
+  {y:2016,t:'Zusterliefde',                                                            f:'20161120-102724-1_orig.jpg'},
+  {y:2016,t:'Lost',                                                                    f:'1481120765.png'},
+  {y:2016,t:'Unknown Equivalent',                                                      f:'1479395060.png'},
+  {y:2016,t:'Drinkende Man bij Molen tijdens Heldere Nacht',                           f:'20161109-223057_orig.jpg'},
+  {y:2016,t:'Pure, Unaltered, Twinge',                                                 f:'1478861217.png'},
+  {y:2016,t:'Sorrow of a Sight-full Sucker',                                           f:'1481120962.png'},
+  {y:2016,t:'Dancing Figurine on Tantalus Tightrope',                                  f:'1478076617.png'},
+  {y:2016,t:'Kiss of an Icosahedron',                                                  f:'1478076520.png'},
+  {y:2016,t:'Heartfelt',                                                               f:'1478076325.png'},
+  {y:2016,t:'Beauty, Forever, Change',                                                 f:'1478076235.png'},
+  {y:2016,t:'Search Into the Self for Unanswered Backlash',                            f:'1481120511.png'},
+  {y:2016,t:'Punanti Punani',                                                          f:'1475503104.png'},
+  {y:2016,t:'Appealing Afterglow in Perpendicular Apocalypse',                         f:'1476974852.png'},
+  {y:2016,t:'Composition B-166ER',                                                     f:'1475067705.png'},
+  {y:2016,t:'Gutting of the Soul / Sweet Bliss in Unexpected Joyfull Triumph',         f:'1475503590.png'},
+  {y:2016,t:'Titus Quietus',                                                           f:'1475503209.png'},
+  {y:2016,t:'Ratsmodee',                                                               f:'20160912-232146-m_orig.jpg'},
+  {y:2016,t:'Untitled',                                                                f:'zijp-uncontrolled-smackbase-2016_orig.jpg'},
+  {y:2016,t:'...',                                                                     f:'20160902-124715_orig.jpg'},
+  {y:2016,t:'Winner Taco',                                                             f:'1475067345.png'},
+  {y:2015,t:'Coronal Mass Ejection',                                                   f:'1475067908.png'},
+  {y:2015,t:'Brainlike Magnet Drain',                                                  f:'1475067940.png'},
+  {y:2015,t:'Looking out over Kinshasa at Dawn',                                       f:'1464267421.png'},
+  {y:2015,t:'Restless Child during Pedicure',                                          f:'1475067974.png'},
+  {y:2014,t:'Dreaming with Daedalus',                                                  f:'3033594_orig.jpg'},
+  {y:2014,t:'Sissi Insists',                                                           f:'5426135_orig.jpg'},
+  {y:2014,t:'Untitled 3.14',                                                           f:'1475067997.png'},
+  {y:2014,t:'Lachend Kind na Schommel',                                                f:'6606979_orig.jpg'},
+  {y:2014,t:'Vagina with Pears',                                                       f:'1259888_orig.jpg'},
+  {y:2014,t:'Composition Nr. -1',                                                      f:'1259794_orig.jpg'},
+  {y:2013,t:'Untitled 36',                                                             f:'1475068024.png'},
+  {y:2013,t:'Fire Rain Burn',                                                          f:'5102898_orig.jpg'},
+  {y:2013,t:'Trauma bij de Koffie',                                                    f:'5466430_orig.jpg'},
+  {y:2012,t:'Superfly',                                                                f:'3573554_orig.jpg'},
+  {y:2011,t:'Voor Mama',                                                               f:'3342544_orig.jpg'},
+  {y:2011,t:'I Choose to See the Beauty',                                              f:'8886774_orig.jpg'},
+  {y:2011,t:'Love is a Four Letter Word',                                              f:'7820743_orig.jpg'},
+  {y:2010,t:"L'art Poer L'art",                                                        f:'1475068071.png'},
+  {y:2010,t:'Komorebi',                                                                f:'1478861399.png'},
+  {y:2008,t:'Bolletje Beschuitweken',                                                  f:'1475068108.png'},
+];
 
-    const data = [
-      // ── 2017 ──
-      { y: 2017, t: 'CT16',                                            f: 'img-20170929-195624-198_orig.jpg' },
-      { y: 2017, t: 'Rag',                                             f: 'img-20170714-090208-885_orig.jpg' },
-      { y: 2017, t: '36,187 Innocent Deaths',                          f: 'img-20170908-102002-463_orig.jpg' },
-      { y: 2017, t: 'Oblivious',                                       f: 'img-20170817-204718-276_orig.jpg' },
-      { y: 2017, t: 'Storm Undone',                                    f: '20170702-121841_orig.jpg' },
-      { y: 2017, t: 'Self',                                            f: '20170514-002203_orig.jpg' },
-      { y: 2017, t: 'Untitled',                                        f: 'editor/20170511-073303.jpeg' },
-      { y: 2017, t: 'First Impressions of Earth',                      f: 'editor/20170422-105252.jpeg' },
-      { y: 2017, t: 'Infundibulum',                                    f: 'img-20170513-122248_orig.jpg' },
-      { y: 2017, t: 'Clearvoyance',                                    f: 'editor/20170417-192851.jpeg' },
-      { y: 2017, t: 'Words that Warmed, Woed and Won',                 f: 'editor/20170126-075928.jpeg' },
-      { y: 2017, t: 'Tranquillo Tres',                                 f: 'editor/20170312-121840.jpeg' },
-      { y: 2017, t: 'Beatific',                                        f: 'published/20170417-192918.jpeg' },
-      { y: 2017, t: 'Title Unknown',                                   f: 'editor/20170117-183551.jpeg' },
-      { y: 2017, t: 'Atavistic',                                       f: 'editor/20161209-001240.jpeg' },
-      // ── 2016 ──
-      { y: 2016, t: 'Zusterliefde',                                    f: '20161120-102724-1_orig.jpg' },
-      { y: 2016, t: 'Lost',                                            f: '1481120765.png' },
-      { y: 2016, t: 'Unknown Equivalent',                              f: '1479395060.png' },
-      { y: 2016, t: 'Drinkende Man bij Molen tijdens Heldere Nacht',   f: '20161109-223057_orig.jpg' },
-      { y: 2016, t: 'Pure, Unaltered, Twinge',                        f: '1478861217.png' },
-      { y: 2016, t: 'Sorrow of a Sight-full Sucker',                  f: '1481120962.png' },
-      { y: 2016, t: 'Dancing Figurine on Tantalus Tightrope',         f: '1478076617.png' },
-      { y: 2016, t: 'Kiss of an Icosahedron',                         f: '1478076520.png' },
-      { y: 2016, t: 'Heartfelt',                                       f: '1478076325.png' },
-      { y: 2016, t: 'Beauty, Forever, Change',                        f: '1478076235.png' },
-      { y: 2016, t: 'Search Into the Self for Unanswered Backlash',   f: '1481120511.png' },
-      { y: 2016, t: 'Punanti Punani',                                  f: '1475503104.png' },
-      { y: 2016, t: 'Appealing Afterglow in Perpendicular Apocalypse',f: '1476974852.png' },
-      { y: 2016, t: 'Composition B-166ER',                            f: '1475067705.png' },
-      { y: 2016, t: 'Gutting of the Soul / Sweet Bliss in Unexpected Joyfull Triumph', f: '1475503590.png' },
-      { y: 2016, t: 'Titus Quietus',                                  f: '1475503209.png' },
-      { y: 2016, t: 'Ratsmodee',                                       f: '20160912-232146-m_orig.jpg' },
-      { y: 2016, t: 'Untitled',                                        f: 'zijp-uncontrolled-smackbase-2016_orig.jpg' },
-      { y: 2016, t: '...',                                             f: '20160902-124715_orig.jpg' },
-      { y: 2016, t: 'Winner Taco',                                     f: '1475067345.png' },
-      // ── 2015 ──
-      { y: 2015, t: 'Coronal Mass Ejection',                          f: '1475067908.png' },
-      { y: 2015, t: 'Brainlike Magnet Drain',                         f: '1475067940.png' },
-      { y: 2015, t: 'Looking out over Kinshasa at Dawn',              f: '1464267421.png' },
-      { y: 2015, t: 'Restless Child during Pedicure',                 f: '1475067974.png' },
-      // ── 2014 ──
-      { y: 2014, t: 'Dreaming with Daedalus',                         f: '3033594_orig.jpg' },
-      { y: 2014, t: 'Sissi Insists',                                   f: '5426135_orig.jpg' },
-      { y: 2014, t: 'Untitled 3.14',                                   f: '1475067997.png' },
-      { y: 2014, t: 'Lachend Kind na Schommel',                       f: '6606979_orig.jpg' },
-      { y: 2014, t: 'Vagina with Pears',                              f: '1259888_orig.jpg' },
-      { y: 2014, t: 'Composition Nr. -1',                             f: '1259794_orig.jpg' },
-      // ── 2013 ──
-      { y: 2013, t: 'Untitled 36',                                     f: '1475068024.png' },
-      { y: 2013, t: 'Fire Rain Burn',                                  f: '5102898_orig.jpg' },
-      { y: 2013, t: 'Trauma bij de Koffie',                           f: '5466430_orig.jpg' },
-      // ── 2012 ──
-      { y: 2012, t: 'Superfly',                                        f: '3573554_orig.jpg' },
-      // ── 2011 ──
-      { y: 2011, t: 'Voor Mama',                                       f: '3342544_orig.jpg' },
-      { y: 2011, t: 'I Choose to See the Beauty',                     f: '8886774_orig.jpg' },
-      { y: 2011, t: 'Love is a Four Letter Word',                     f: '7820743_orig.jpg' },
-      // ── 2010 ──
-      { y: 2010, t: "L'art Poer L'art",                               f: '1475068071.png' },
-      { y: 2010, t: 'Komorebi',                                        f: '1478861399.png' },
-      // ── 2008 ──
-      { y: 2008, t: 'Bolletje Beschuitweken',                         f: '1475068108.png' },
-    ];
+/* ── Build gallery ── */
+const gallery = document.getElementById('gallery');
+const cards   = [];
+data.forEach((p, i) => {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="card-img">
+      <img src="${B + p.f}" alt="${p.t}" loading="lazy" decoding="async">
+    </div>
+    <div class="card-caption">
+      <span class="card-title">${p.t}</span>
+      <span class="card-year">${p.y}</span>
+    </div>`;
+  card.addEventListener('click', () => openLb(i));
+  gallery.appendChild(card);
+  cards.push(card);
+});
 
-    // ── Build gallery ──────────────────────────────────────
-    const years = [...new Set(data.map(p => p.y))].sort((a,b) => b-a);
-    const gallery = document.getElementById('gallery');
-    const filterBar = document.getElementById('filter-bar');
-    let allCards = [];
-
-    // All button
-    const allBtn = mkBtn('All', data.length, 'all');
-    allBtn.classList.add('active');
-    filterBar.appendChild(allBtn);
-
-    years.forEach(year => {
-      const yearData = data.filter(p => p.y === year);
-
-      // Filter button
-      filterBar.appendChild(mkBtn(year, yearData.length, year));
-
-      // Section
-      const sec = document.createElement('section');
-      sec.className = 'year-section';
-      sec.dataset.year = year;
-
-      const hdr = document.createElement('div');
-      hdr.className = 'year-header';
-      hdr.innerHTML = `<span class="year-number">${year}</span><span class="year-count">${yearData.length} work${yearData.length > 1 ? 's' : ''}</span>`;
-      sec.appendChild(hdr);
-
-      const grid = document.createElement('div');
-      grid.className = 'masonry';
-
-      yearData.forEach(p => {
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.dataset.src  = BASE + p.f;
-        card.dataset.title = p.t;
-        card.dataset.year  = p.y;
-
-        const img = document.createElement('img');
-        img.src = BASE + p.f;
-        img.alt = p.t;
-        img.loading = 'lazy';
-        img.decoding = 'async';
-
-        const ov = document.createElement('div');
-        ov.className = 'card-overlay';
-        ov.innerHTML = `<span class="card-title">${p.t}</span><span class="card-year-tag">${p.y}</span>`;
-
-        card.appendChild(img);
-        card.appendChild(ov);
-        grid.appendChild(card);
-        allCards.push(card);
-
-        card.addEventListener('click', () => openLb(allCards.indexOf(card)));
-      });
-
-      sec.appendChild(grid);
-      gallery.appendChild(sec);
-    });
-
-    function mkBtn(label, count, value) {
-      const btn = document.createElement('button');
-      btn.className = 'filter-btn';
-      btn.dataset.year = value;
-      btn.innerHTML = `${label}<span class="count">(${count})</span>`;
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        document.querySelectorAll('.year-section').forEach(s => {
-          s.classList.toggle('hidden', value !== 'all' && s.dataset.year != value);
-        });
-      });
-      return btn;
+/* ── Scroll fade-in ── */
+const io = new IntersectionObserver(entries => {
+  entries.forEach((e, idx) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('in'), idx * 55);
+      io.unobserve(e.target);
     }
+  });
+}, { threshold: .06, rootMargin: '0px 0px -40px 0px' });
+cards.forEach(c => io.observe(c));
 
-    // ── Scroll fade-in ─────────────────────────────────────
-    const io = new IntersectionObserver(entries => {
-      entries.forEach((e, i) => {
-        if (e.isIntersecting) {
-          setTimeout(() => e.target.classList.add('visible'), i * 40);
-          io.unobserve(e.target);
-        }
-      });
-    }, { rootMargin: '0px 0px -40px 0px', threshold: 0.05 });
+/* ── Lightbox ── */
+const lb    = document.getElementById('lb');
+const lbImg = document.getElementById('lb-img');
+const lbT   = document.getElementById('lb-title');
+const lbY   = document.getElementById('lb-year');
+const lbC   = document.getElementById('lb-count');
+let cur = 0;
 
-    allCards.forEach(c => io.observe(c));
+function lbLoad(i) {
+  cur = i;
+  lbImg.classList.add('fade');
+  const tmp = new Image();
+  tmp.onload = () => { lbImg.src = B + data[i].f; lbImg.classList.remove('fade'); };
+  tmp.src = B + data[i].f;
+  if (tmp.complete) { lbImg.src = B + data[i].f; lbImg.classList.remove('fade'); }
+  lbT.textContent = data[i].t;
+  lbY.textContent = data[i].y;
+  lbC.textContent = `${i + 1} / ${data.length}`;
+}
+function openLb(i) { lbLoad(i); lb.classList.add('open'); document.body.style.overflow = 'hidden'; }
+function closeLb()  { lb.classList.remove('open'); document.body.style.overflow = ''; }
 
-    // ── Lightbox ───────────────────────────────────────────
-    const lb      = document.getElementById('lb');
-    const lbImg   = document.getElementById('lb-img');
-    const lbTitle = document.getElementById('lb-title');
-    const lbYear  = document.getElementById('lb-year');
-    const lbCount = document.getElementById('lb-counter');
-    let cur = 0;
-
-    function visibleCards() {
-      return allCards.filter(c => !c.closest('.year-section').classList.contains('hidden'));
-    }
-
-    function openLb(idx) {
-      const vc = visibleCards();
-      const card = allCards[idx];
-      cur = Math.max(0, vc.indexOf(card));
-      showLb(vc);
-      lb.classList.add('open');
-      document.body.style.overflow = 'hidden';
-    }
-
-    function showLb(vc) {
-      if (!vc) vc = visibleCards();
-      const card = vc[cur];
-      lbImg.classList.add('loading');
-      const tempImg = new Image();
-      tempImg.onload = () => { lbImg.src = card.dataset.src; lbImg.classList.remove('loading'); };
-      tempImg.src = card.dataset.src;
-      if (tempImg.complete) { lbImg.src = card.dataset.src; lbImg.classList.remove('loading'); }
-      lbTitle.textContent = card.dataset.title;
-      lbYear.textContent  = card.dataset.year;
-      lbCount.textContent = `${cur + 1} / ${vc.length}`;
-    }
-
-    function closeLb() {
-      lb.classList.remove('open');
-      document.body.style.overflow = '';
-    }
-
-    document.getElementById('lb-close').addEventListener('click', closeLb);
-    lb.addEventListener('click', e => { if (e.target === lb) closeLb(); });
-
-    document.getElementById('lb-prev').addEventListener('click', e => {
-      e.stopPropagation();
-      const vc = visibleCards();
-      cur = (cur - 1 + vc.length) % vc.length;
-      showLb(vc);
-    });
-
-    document.getElementById('lb-next').addEventListener('click', e => {
-      e.stopPropagation();
-      const vc = visibleCards();
-      cur = (cur + 1) % vc.length;
-      showLb(vc);
-    });
-
-    document.addEventListener('keydown', e => {
-      if (!lb.classList.contains('open')) return;
-      const vc = visibleCards();
-      if (e.key === 'Escape')      closeLb();
-      if (e.key === 'ArrowLeft')  { cur = (cur - 1 + vc.length) % vc.length; showLb(vc); }
-      if (e.key === 'ArrowRight') { cur = (cur + 1) % vc.length; showLb(vc); }
-    });
-  </script>
+document.getElementById('lb-close').addEventListener('click', closeLb);
+lb.addEventListener('click', e => { if (e.target === lb) closeLb(); });
+document.getElementById('lb-prev').addEventListener('click', e => {
+  e.stopPropagation(); lbLoad((cur - 1 + data.length) % data.length);
+});
+document.getElementById('lb-next').addEventListener('click', e => {
+  e.stopPropagation(); lbLoad((cur + 1) % data.length);
+});
+document.addEventListener('keydown', e => {
+  if (!lb.classList.contains('open')) return;
+  if (e.key === 'Escape')     closeLb();
+  if (e.key === 'ArrowLeft')  lbLoad((cur - 1 + data.length) % data.length);
+  if (e.key === 'ArrowRight') lbLoad((cur + 1) % data.length);
+});
+</script>
 </body>
 </html>
