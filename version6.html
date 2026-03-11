@@ -3,140 +3,159 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smartism — Frame</title>
+  <title>Smartism — Cinema</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="icon" type="image/x-icon"  href="favicon.ico">
   <style>
-    :root { --accent: #c9a96e; --muted: #444; }
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { height: 100%; overflow: hidden; background: #050505; color: #d8d8d8; font-family: Georgia, serif; }
+    html, body {
+      height: 100%; overflow: hidden;
+      background: #000; color: #fff;
+      font-family: Georgia, 'Times New Roman', serif;
+      user-select: none;
+    }
 
-    /* ── Top bar ── */
-    .brand {
-      position: fixed; top: 0; left: 0; right: 0; height: 50px;
+    /* ── Two-buffer image layers ── */
+    .scene { position: fixed; inset: 0; }
+
+    .layer {
+      position: absolute; inset: 0;
       display: flex; align-items: center; justify-content: center;
-      z-index: 20; pointer-events: none;
+      opacity: 0;
+      transition: opacity .9s cubic-bezier(.4,0,.2,1);
     }
-    .brand span {
-      font-size: .78rem; letter-spacing: .46em; text-transform: uppercase;
-      color: #3a3a3a;
+    .layer.active { opacity: 1; }
+
+    .layer img {
+      max-width: 100vw; max-height: 100vh;
+      object-fit: contain; display: block;
+      /* very subtle desaturate at rest — lifted once title shows */
+      filter: brightness(.92) saturate(.9);
+      transition: filter 1.2s ease;
     }
-    .counter {
-      position: fixed; top: 18px; left: 28px;
-      font-size: .6rem; color: var(--muted); letter-spacing: .3em;
-      font-family: sans-serif; text-transform: uppercase; z-index: 20;
-    }
-    .hint-key {
-      position: fixed; top: 18px; right: 28px;
-      font-size: .58rem; color: #252525; letter-spacing: .18em;
-      font-family: sans-serif; text-transform: uppercase; z-index: 20;
+    .layer.active img { filter: brightness(1) saturate(1); }
+
+    /* ── Bottom gradient ── */
+    .gradient {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      height: 45%;
+      background: linear-gradient(to top,
+        rgba(0,0,0,.88) 0%,
+        rgba(0,0,0,.4)  40%,
+        transparent     80%);
+      pointer-events: none; z-index: 10;
     }
 
-    /* ── Main viewer ── */
-    .viewer {
-      position: fixed; top: 50px; left: 0; right: 0; bottom: 148px;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      padding: 16px 80px 0;
+    /* ── Title overlay ── */
+    .title-wrap {
+      position: fixed; bottom: 60px; left: 0; right: 0;
+      text-align: center; z-index: 20;
+      pointer-events: none;
+      opacity: 0; transform: translateY(12px);
+      transition: opacity .65s ease, transform .65s ease;
     }
-    .img-wrap {
-      flex: 1; min-height: 0; width: 100%;
-      display: flex; align-items: center; justify-content: center;
-    }
-    #main-img {
-      max-width: 100%; max-height: 100%; object-fit: contain; display: block;
-      box-shadow: 0 22px 65px rgba(0,0,0,.8);
-      transition: opacity .2s ease;
-    }
-    #main-img.fade { opacity: 0; }
+    .title-wrap.show { opacity: 1; transform: none; }
 
-    /* ── Info ── */
-    .info {
-      flex-shrink: 0; text-align: center; padding: 14px 20px 10px;
-      min-height: 54px;
+    .cine-title {
+      font-style: italic;
+      font-size: clamp(1.3rem, 3.2vw, 2.4rem);
+      color: #fff;
+      letter-spacing: .04em;
+      text-shadow: 0 2px 24px rgba(0,0,0,.7), 0 0 60px rgba(0,0,0,.5);
+      line-height: 1.3;
+      padding: 0 60px;
     }
-    .info-title {
-      font-style: italic; font-size: .95rem; color: #ccc;
-      letter-spacing: .03em; line-height: 1.4;
-    }
-    .info-year {
-      font-size: .6rem; color: var(--accent); letter-spacing: .32em;
-      text-transform: uppercase; font-family: sans-serif; margin-top: 4px;
+    .cine-year {
+      margin-top: 10px;
+      font-size: .62rem; color: #c9a96e;
+      letter-spacing: .4em; text-transform: uppercase;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      display: block;
     }
 
-    /* ── Nav arrows ── */
-    .arr {
-      position: fixed; top: 50%; margin-top: -22px;
-      background: none; border: 1px solid #1c1c1c; color: var(--muted);
-      width: 44px; height: 44px; font-size: 1.3rem; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: all .2s; z-index: 20;
+    /* ── Brand + counter (top) ── */
+    .topbar {
+      position: fixed; top: 0; left: 0; right: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 22px 28px; z-index: 20; pointer-events: none;
     }
-    .arr:hover { border-color: var(--accent); color: var(--accent); }
-    #btn-prev { left: 14px; }
-    #btn-next { right: 14px; }
+    .tb-brand {
+      font-size: .72rem; letter-spacing: .44em; text-transform: uppercase;
+      color: rgba(255,255,255,.18);
+    }
+    .tb-counter {
+      font-size: .6rem; color: rgba(255,255,255,.22);
+      letter-spacing: .28em; font-family: 'Helvetica Neue', Arial, sans-serif;
+    }
 
-    /* ── Progress bar ── */
+    /* ── Click navigation zones ── */
+    .zone {
+      position: fixed; top: 0; bottom: 0; width: 50%; z-index: 30;
+      cursor: pointer;
+    }
+    #zone-prev { left: 0; }
+    #zone-next { right: 0; }
+
+    /* ── Arrow hints ── */
+    .arrow-hint {
+      position: fixed; top: 50%; transform: translateY(-50%);
+      color: rgba(255,255,255,.12);
+      font-size: 3rem; z-index: 40;
+      pointer-events: none;
+      transition: color .4s, opacity .4s;
+      line-height: 1;
+    }
+    #arr-l { left: 20px; }
+    #arr-r { right: 20px; }
+    #zone-prev:hover ~ #arr-l { color: rgba(255,255,255,.35); }
+    #zone-next:hover ~ #arr-r { color: rgba(255,255,255,.35); }
+
+    /* ── Thin progress bar at very bottom ── */
     .progress {
-      position: fixed; bottom: 148px; left: 0; right: 0; height: 1px;
-      background: #161616; z-index: 20;
-    }
-    .prog-fill {
-      height: 100%; background: var(--accent);
-      transition: width .35s cubic-bezier(.25,.46,.45,.94);
+      position: fixed; bottom: 0; left: 0;
+      height: 2px; background: rgba(201,169,110,.5);
+      transition: width .6s cubic-bezier(.4,0,.2,1);
+      z-index: 50;
     }
 
-    /* ── Filmstrip ── */
-    .strip {
-      position: fixed; bottom: 0; left: 0; right: 0; height: 148px;
-      border-top: 1px solid #111; background: #070707;
-      display: flex; align-items: center;
-      overflow-x: auto; overflow-y: hidden;
-      gap: 3px; padding: 10px 12px;
-      scroll-behavior: smooth;
-    }
-    .strip::-webkit-scrollbar { height: 3px; }
-    .strip::-webkit-scrollbar-track { background: transparent; }
-    .strip::-webkit-scrollbar-thumb { background: #222; border-radius: 2px; }
-
-    .thumb {
-      flex-shrink: 0; height: 118px; width: auto;
-      cursor: pointer; object-fit: contain;
-      opacity: .35; outline: 2px solid transparent; outline-offset: 0;
-      transition: opacity .22s, outline-color .22s, transform .22s;
-    }
-    .thumb:hover   { opacity: .7; }
-    .thumb.active  { opacity: 1; outline-color: var(--accent); transform: scaleY(1.04); }
-
-    @media (max-width: 700px) {
-      .viewer { padding: 10px 50px 0; }
-      .arr    { width: 36px; height: 36px; font-size: 1.1rem; }
-      .strip  { height: 100px; }
-      .thumb  { height: 78px; }
-      .progress { bottom: 100px; }
+    /* ── Keyboard hint ── */
+    .kb-hint {
+      position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
+      font-size: .54rem; color: rgba(255,255,255,.12);
+      letter-spacing: .22em; text-transform: uppercase;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      z-index: 50; pointer-events: none; white-space: nowrap;
     }
   </style>
 </head>
 <body>
 
-<div class="brand"><span>Smartism</span></div>
-<span class="counter" id="counter"></span>
-<span class="hint-key">← → to navigate</span>
-
-<div class="viewer">
-  <div class="img-wrap"><img id="main-img" src="" alt=""></div>
-  <div class="info">
-    <p class="info-title" id="info-title"></p>
-    <p class="info-year"  id="info-year"></p>
-  </div>
+<!-- Two image layers for cross-fade -->
+<div class="scene">
+  <div class="layer" id="layer-a"><img id="img-a" src="" alt=""></div>
+  <div class="layer" id="layer-b"><img id="img-b" src="" alt=""></div>
 </div>
 
-<button class="arr" id="btn-prev">&#8249;</button>
-<button class="arr" id="btn-next">&#8250;</button>
+<div class="gradient"></div>
 
-<div class="progress"><div class="prog-fill" id="prog-fill"></div></div>
+<div class="title-wrap" id="title-wrap">
+  <p class="cine-title" id="cine-title"></p>
+  <span class="cine-year" id="cine-year"></span>
+</div>
 
-<div class="strip" id="strip"></div>
+<div class="topbar">
+  <span class="tb-brand">Smartism</span>
+  <span class="tb-counter" id="tb-counter"></span>
+</div>
+
+<div class="zone" id="zone-prev"></div>
+<div class="zone" id="zone-next"></div>
+
+<span class="arrow-hint" id="arr-l">&#8249;</span>
+<span class="arrow-hint" id="arr-r">&#8250;</span>
+
+<div class="progress" id="progress"></div>
+<span class="kb-hint">← → navigate</span>
 
 <script>
 const B = 'images/';
@@ -198,64 +217,91 @@ const data = [
   {y:2008,t:'Bolletje Beschuitweken',                                                  f:'1475068108.png'},
 ];
 
-let cur = 0;
-const mainImg   = document.getElementById('main-img');
-const infoTitle = document.getElementById('info-title');
-const infoYear  = document.getElementById('info-year');
-const counter   = document.getElementById('counter');
-const progFill  = document.getElementById('prog-fill');
-const strip     = document.getElementById('strip');
-let thumbs = [];
+/* ── Two-buffer cross-fade engine ── */
+const layers   = [document.getElementById('layer-a'), document.getElementById('layer-b')];
+const imgs     = [document.getElementById('img-a'),   document.getElementById('img-b')];
+const titleWrap = document.getElementById('title-wrap');
+const cineTitle = document.getElementById('cine-title');
+const cineYear  = document.getElementById('cine-year');
+const counter   = document.getElementById('tb-counter');
+const progress  = document.getElementById('progress');
 
-/* Build filmstrip */
-data.forEach((p, i) => {
-  const img = document.createElement('img');
-  img.src       = B + p.f;
-  img.alt       = p.t;
-  img.className = 'thumb';
-  img.loading   = 'lazy';
-  img.title     = p.t;
-  img.addEventListener('click', () => show(i));
-  strip.appendChild(img);
-  thumbs.push(img);
-});
+let cur    = 0;
+let active = 0;   /* which buffer is currently showing */
+let busy   = false;
 
-function show(i) {
-  cur = i;
-  const p = data[i];
-
-  /* update info */
-  infoTitle.textContent = p.t;
-  infoYear.textContent  = p.y;
-  counter.textContent   = `${String(i + 1).padStart(2, '0')} / ${String(data.length).padStart(2, '0')}`;
-  progFill.style.width  = `${((i + 1) / data.length) * 100}%`;
-
-  /* fade-swap main image */
-  mainImg.classList.add('fade');
-  const tmp = new Image();
-  tmp.onload = () => { mainImg.src = B + p.f; mainImg.classList.remove('fade'); };
-  tmp.src = B + p.f;
-  if (tmp.complete) { mainImg.src = B + p.f; mainImg.classList.remove('fade'); }
-  mainImg.alt = p.t;
-
-  /* update strip */
-  thumbs.forEach((t, j) => t.classList.toggle('active', j === i));
-
-  /* scroll active thumb to center of strip */
-  const th = thumbs[i];
-  const sw = strip.clientWidth;
-  strip.scrollLeft = th.offsetLeft - sw / 2 + th.clientWidth / 2;
+/* Preload helper */
+function preload(src) {
+  const img = new Image();
+  img.src = src;
 }
 
-document.getElementById('btn-prev').addEventListener('click', () => show((cur - 1 + data.length) % data.length));
-document.getElementById('btn-next').addEventListener('click', () => show((cur + 1) % data.length));
+function updateUI(i) {
+  cineTitle.textContent = data[i].t;
+  cineYear.textContent  = data[i].y;
+  counter.textContent   = `${String(i + 1).padStart(2, '0')} / ${String(data.length).padStart(2, '0')}`;
+  progress.style.width  = `${((i + 1) / data.length) * 100}%`;
+}
+
+function show(i, instant) {
+  if (busy && !instant) return;
+  busy = true;
+  cur  = i;
+
+  /* hide title immediately */
+  titleWrap.classList.remove('show');
+
+  const next = 1 - active;
+  const src  = B + data[i].f;
+
+  function swap() {
+    layers[next].classList.add('active');
+    layers[active].classList.remove('active');
+    active = next;
+    updateUI(i);
+    /* title fades in after image cross-fade begins */
+    setTimeout(() => {
+      titleWrap.classList.add('show');
+      busy = false;
+    }, 500);
+    /* preload neighbours */
+    if (data[i + 1]) preload(B + data[i + 1].f);
+    if (data[i - 1]) preload(B + data[i - 1].f);
+  }
+
+  if (instant) {
+    imgs[next].src = src;
+    swap();
+  } else {
+    imgs[next].onload = swap;
+    imgs[next].src    = src;
+    if (imgs[next].complete) swap();
+  }
+}
+
+function prev() { show((cur - 1 + data.length) % data.length); }
+function next() { show((cur + 1) % data.length); }
+
+document.getElementById('zone-prev').addEventListener('click', prev);
+document.getElementById('zone-next').addEventListener('click', next);
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowLeft')  show((cur - 1 + data.length) % data.length);
-  if (e.key === 'ArrowRight') show((cur + 1) % data.length);
+  if (e.key === 'ArrowLeft')  prev();
+  if (e.key === 'ArrowRight') next();
 });
 
-show(0);
+/* Touch swipe */
+let touchX = null;
+document.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; });
+document.addEventListener('touchend', e => {
+  if (touchX === null) return;
+  const dx = e.changedTouches[0].clientX - touchX;
+  if (Math.abs(dx) > 50) dx < 0 ? next() : prev();
+  touchX = null;
+});
+
+/* Boot */
+show(0, true);
 </script>
 </body>
 </html>
