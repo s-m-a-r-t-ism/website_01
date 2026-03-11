@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smartism — Flow</title>
+  <style>
+    :root {
+      --bg:     #0c0c0c;
+      --accent: #c9a96e;
+      --text:   #e6e6e6;
+      --muted:  #505050;
+      --border: #1e1e1e;
+    }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: var(--bg); color: var(--text); font-family: Georgia, serif; }
+
+    /* ── Header ── */
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 30px; border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(12,12,12,.96); backdrop-filter: blur(20px);
+    }
+    .brand { display: flex; align-items: baseline; gap: 18px; }
+    .brand h1 {
+      font-size: 1.1rem; letter-spacing: .38em; text-transform: uppercase;
+      font-weight: 400; color: var(--text);
+    }
+    .brand-meta {
+      font-size: .62rem; letter-spacing: .22em; color: var(--muted);
+      font-family: sans-serif; text-transform: uppercase;
+    }
+    .sorter { display: flex; gap: 3px; }
+    .s-btn {
+      background: none; border: 1px solid #282828; color: #404040;
+      padding: 5px 13px; font-size: .62rem; letter-spacing: .18em;
+      text-transform: uppercase; font-family: sans-serif;
+      cursor: pointer; transition: all .2s;
+    }
+    .s-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .s-btn.on  { background: var(--accent); border-color: var(--accent); color: #0a0a0a; font-weight: 700; }
+
+    /* ── Masonry ── */
+    .grid {
+      columns: 5 170px; column-gap: 4px; padding: 4px;
+      min-height: calc(100vh - 130px);
+    }
+    .card {
+      break-inside: avoid; margin-bottom: 4px;
+      position: relative; overflow: hidden; cursor: pointer;
+      background: #0f0f0f;
+      opacity: 0; transform: translateY(10px);
+      transition: opacity .45s ease, transform .45s ease;
+    }
+    .card.vis { opacity: 1; transform: none; }
+    .card img {
+      display: block; width: 100%; height: auto;
+      filter: brightness(.87) saturate(.82);
+      transition: transform .55s cubic-bezier(.25,.46,.45,.94), filter .4s;
+    }
+    .card:hover img { transform: scale(1.07); filter: brightness(1) saturate(1.1); }
+    .meta {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,.9) 0%, transparent 55%);
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 10px 9px; opacity: 0; transition: opacity .28s;
+    }
+    .card:hover .meta { opacity: 1; }
+    .meta-title { font-size: .72rem; font-style: italic; color: #fff; line-height: 1.3; }
+    .meta-year {
+      display: inline-block; margin-top: 4px; font-size: .58rem;
+      color: var(--accent); letter-spacing: .24em;
+      text-transform: uppercase; font-family: sans-serif;
+    }
+    /* zoom pip */
+    .card::after {
+      content: '⊕'; position: absolute; top: 9px; right: 9px;
+      color: rgba(255,255,255,.65); font-size: 1rem;
+      opacity: 0; transition: opacity .28s; pointer-events: none;
+    }
+    .card:hover::after { opacity: 1; }
+
+    /* ── Lightbox ── */
+    #lb {
+      display: none; position: fixed; inset: 0;
+      background: rgba(3,3,3,.97); z-index: 500;
+      align-items: center; justify-content: center;
+      flex-direction: column; padding: 58px 68px 66px;
+    }
+    #lb.open { display: flex; }
+    #lb-wrap { flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; }
+    #lb-img {
+      max-width: 100%; max-height: 100%; object-fit: contain;
+      box-shadow: 0 25px 70px rgba(0,0,0,.85); transition: opacity .18s;
+    }
+    #lb-img.fade { opacity: 0; }
+    .lb-info { text-align: center; padding-top: 16px; flex-shrink: 0; }
+    .lb-title { font-style: italic; font-size: .95rem; color: var(--text); }
+    .lb-year {
+      font-size: .6rem; color: var(--accent); letter-spacing: .3em;
+      text-transform: uppercase; margin-top: 5px; font-family: sans-serif;
+    }
+    #lb-close {
+      position: fixed; top: 16px; right: 20px; background: none; border: none;
+      color: #444; font-size: 1.9rem; cursor: pointer;
+      transition: color .2s, transform .2s;
+    }
+    #lb-close:hover { color: #fff; transform: rotate(90deg); }
+    #lb-count {
+      position: fixed; top: 22px; left: 50%; transform: translateX(-50%);
+      font-size: .62rem; color: var(--muted); letter-spacing: .28em;
+      font-family: sans-serif; text-transform: uppercase;
+    }
+    .lb-arr {
+      position: fixed; top: 50%; transform: translateY(-50%);
+      background: none; border: 1px solid #252525; color: #444;
+      width: 42px; height: 42px; font-size: 1.25rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; transition: all .2s;
+    }
+    .lb-arr:hover { border-color: var(--accent); color: var(--accent); }
+    #lb-prev { left: 14px; }
+    #lb-next { right: 14px; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center; padding: 42px 20px 50px;
+      border-top: 1px solid var(--border); font-family: sans-serif;
+    }
+    footer p { font-size: .68rem; color: var(--muted); letter-spacing: .22em; text-transform: uppercase; }
+    footer a { color: var(--accent); text-decoration: none; }
+
+    @media (max-width: 600px) {
+      header { padding: 16px 18px; flex-direction: column; gap: 14px; }
+      .grid  { columns: 2 130px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1>Smartism</h1>
+    <span class="brand-meta" id="count-lbl"></span>
+  </div>
+  <div class="sorter">
+    <button class="s-btn on" data-s="new">Newest</button>
+    <button class="s-btn"    data-s="old">Oldest</button>
+    <button class="s-btn"    data-s="rnd">Shuffle</button>
+  </div>
+</header>
+
+<div class="grid" id="grid"></div>
+
+<div id="lb">
+  <button id="lb-close">×</button>
+  <span id="lb-count"></span>
+  <button class="lb-arr" id="lb-prev">&#8249;</button>
+  <button class="lb-arr" id="lb-next">&#8250;</button>
+  <div id="lb-wrap"><img id="lb-img" src="" alt=""></div>
+  <div class="lb-info">
+    <p class="lb-title" id="lb-title"></p>
+    <p class="lb-year"  id="lb-year"></p>
+  </div>
+</div>
+
+<footer><p>For inquiries: <a href="tel:+31623140683">+31 6 23140683</a></p></footer>
+
+<script>
+const B = 'images/';
+const RAW = [
+  {y:2017,t:'CT16',                                                                    f:'img-20170929-195624-198_orig.jpg'},
+  {y:2017,t:'Rag',                                                                     f:'img-20170714-090208-885_orig.jpg'},
+  {y:2017,t:'36,187 Innocent Deaths',                                                  f:'img-20170908-102002-463_orig.jpg'},
+  {y:2017,t:'Oblivious',                                                               f:'img-20170817-204718-276_orig.jpg'},
+  {y:2017,t:'Storm Undone',                                                            f:'20170702-121841_orig.jpg'},
+  {y:2017,t:'Self',                                                                    f:'20170514-002203_orig.jpg'},
+  {y:2017,t:'Untitled',                                                                f:'editor/20170511-073303.jpeg'},
+  {y:2017,t:'First Impressions of Earth',                                              f:'editor/20170422-105252.jpeg'},
+  {y:2017,t:'Infundibulum',                                                            f:'img-20170513-122248_orig.jpg'},
+  {y:2017,t:'Clearvoyance',                                                            f:'editor/20170417-192851.jpeg'},
+  {y:2017,t:'Words that Warmed, Woed and Won',                                         f:'editor/20170126-075928.jpeg'},
+  {y:2017,t:'Tranquillo Tres',                                                         f:'editor/20170312-121840.jpeg'},
+  {y:2017,t:'Beatific',                                                                f:'published/20170417-192918.jpeg'},
+  {y:2017,t:'Title Unknown',                                                           f:'editor/20170117-183551.jpeg'},
+  {y:2017,t:'Atavistic',                                                               f:'editor/20161209-001240.jpeg'},
+  {y:2016,t:'Zusterliefde',                                                            f:'20161120-102724-1_orig.jpg'},
+  {y:2016,t:'Lost',                                                                    f:'1481120765.png'},
+  {y:2016,t:'Unknown Equivalent',                                                      f:'1479395060.png'},
+  {y:2016,t:'Drinkende Man bij Molen tijdens Heldere Nacht',                           f:'20161109-223057_orig.jpg'},
+  {y:2016,t:'Pure, Unaltered, Twinge',                                                 f:'1478861217.png'},
+  {y:2016,t:'Sorrow of a Sight-full Sucker',                                           f:'1481120962.png'},
+  {y:2016,t:'Dancing Figurine on Tantalus Tightrope',                                  f:'1478076617.png'},
+  {y:2016,t:'Kiss of an Icosahedron',                                                  f:'1478076520.png'},
+  {y:2016,t:'Heartfelt',                                                               f:'1478076325.png'},
+  {y:2016,t:'Beauty, Forever, Change',                                                 f:'1478076235.png'},
+  {y:2016,t:'Search Into the Self for Unanswered Backlash',                            f:'1481120511.png'},
+  {y:2016,t:'Punanti Punani',                                                          f:'1475503104.png'},
+  {y:2016,t:'Appealing Afterglow in Perpendicular Apocalypse',                         f:'1476974852.png'},
+  {y:2016,t:'Composition B-166ER',                                                     f:'1475067705.png'},
+  {y:2016,t:'Gutting of the Soul / Sweet Bliss in Unexpected Joyfull Triumph',         f:'1475503590.png'},
+  {y:2016,t:'Titus Quietus',                                                           f:'1475503209.png'},
+  {y:2016,t:'Ratsmodee',                                                               f:'20160912-232146-m_orig.jpg'},
+  {y:2016,t:'Untitled',                                                                f:'zijp-uncontrolled-smackbase-2016_orig.jpg'},
+  {y:2016,t:'...',                                                                     f:'20160902-124715_orig.jpg'},
+  {y:2016,t:'Winner Taco',                                                             f:'1475067345.png'},
+  {y:2015,t:'Coronal Mass Ejection',                                                   f:'1475067908.png'},
+  {y:2015,t:'Brainlike Magnet Drain',                                                  f:'1475067940.png'},
+  {y:2015,t:'Looking out over Kinshasa at Dawn',                                       f:'1464267421.png'},
+  {y:2015,t:'Restless Child during Pedicure',                                          f:'1475067974.png'},
+  {y:2014,t:'Dreaming with Daedalus',                                                  f:'3033594_orig.jpg'},
+  {y:2014,t:'Sissi Insists',                                                           f:'5426135_orig.jpg'},
+  {y:2014,t:'Untitled 3.14',                                                           f:'1475067997.png'},
+  {y:2014,t:'Lachend Kind na Schommel',                                                f:'6606979_orig.jpg'},
+  {y:2014,t:'Vagina with Pears',                                                       f:'1259888_orig.jpg'},
+  {y:2014,t:'Composition Nr. -1',                                                      f:'1259794_orig.jpg'},
+  {y:2013,t:'Untitled 36',                                                             f:'1475068024.png'},
+  {y:2013,t:'Fire Rain Burn',                                                          f:'5102898_orig.jpg'},
+  {y:2013,t:'Trauma bij de Koffie',                                                    f:'5466430_orig.jpg'},
+  {y:2012,t:'Superfly',                                                                f:'3573554_orig.jpg'},
+  {y:2011,t:'Voor Mama',                                                               f:'3342544_orig.jpg'},
+  {y:2011,t:'I Choose to See the Beauty',                                              f:'8886774_orig.jpg'},
+  {y:2011,t:'Love is a Four Letter Word',                                              f:'7820743_orig.jpg'},
+  {y:2010,t:"L'art Poer L'art",                                                        f:'1475068071.png'},
+  {y:2010,t:'Komorebi',                                                                f:'1478861399.png'},
+  {y:2008,t:'Bolletje Beschuitweken',                                                  f:'1475068108.png'},
+];
+
+let arr = [], cards = [], cur = 0;
+
+function shuffle(a) {
+  const r = [...a];
+  for (let i = r.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [r[i], r[j]] = [r[j], r[i]];
+  }
+  return r;
+}
+
+function render(data) {
+  arr = data;
+  const g = document.getElementById('grid');
+  g.innerHTML = '';
+  cards = [];
+  data.forEach((p, i) => {
+    const d = document.createElement('div');
+    d.className = 'card';
+    d.innerHTML = `
+      <img src="${B + p.f}" alt="${p.t}" loading="lazy" decoding="async">
+      <div class="meta">
+        <span class="meta-title">${p.t}</span>
+        <span class="meta-year">${p.y}</span>
+      </div>`;
+    d.addEventListener('click', () => openLb(i));
+    g.appendChild(d);
+    cards.push(d);
+  });
+  document.getElementById('count-lbl').textContent = `${data.length} works`;
+  const io = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('vis'), i * 22);
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: .05 });
+  cards.forEach(c => io.observe(c));
+}
+
+document.querySelectorAll('.s-btn').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.s-btn').forEach(x => x.classList.remove('on'));
+  b.classList.add('on');
+  const s = b.dataset.s;
+  render(s === 'new' ? [...RAW].sort((a, c) => c.y - a.y)
+       : s === 'old' ? [...RAW].sort((a, c) => a.y - c.y)
+       : shuffle(RAW));
+}));
+
+/* Lightbox */
+const lb    = document.getElementById('lb');
+const lbImg = document.getElementById('lb-img');
+const lbT   = document.getElementById('lb-title');
+const lbY   = document.getElementById('lb-year');
+const lbC   = document.getElementById('lb-count');
+
+function lbLoad(i) {
+  cur = i;
+  lbImg.classList.add('fade');
+  const tmp = new Image();
+  tmp.onload = () => { lbImg.src = B + arr[i].f; lbImg.classList.remove('fade'); };
+  tmp.src = B + arr[i].f;
+  if (tmp.complete) { lbImg.src = B + arr[i].f; lbImg.classList.remove('fade'); }
+  lbT.textContent = arr[i].t;
+  lbY.textContent = arr[i].y;
+  lbC.textContent = `${i + 1} / ${arr.length}`;
+}
+
+function openLb(i) {
+  lbLoad(i); lb.classList.add('open'); document.body.style.overflow = 'hidden';
+}
+function closeLb() {
+  lb.classList.remove('open'); document.body.style.overflow = '';
+}
+
+document.getElementById('lb-close').addEventListener('click', closeLb);
+lb.addEventListener('click', e => { if (e.target === lb) closeLb(); });
+document.getElementById('lb-prev').addEventListener('click', e => {
+  e.stopPropagation(); lbLoad((cur - 1 + arr.length) % arr.length);
+});
+document.getElementById('lb-next').addEventListener('click', e => {
+  e.stopPropagation(); lbLoad((cur + 1) % arr.length);
+});
+document.addEventListener('keydown', e => {
+  if (!lb.classList.contains('open')) return;
+  if (e.key === 'Escape')      closeLb();
+  if (e.key === 'ArrowLeft')   lbLoad((cur - 1 + arr.length) % arr.length);
+  if (e.key === 'ArrowRight')  lbLoad((cur + 1) % arr.length);
+});
+
+render([...RAW].sort((a, b) => b.y - a.y));
+</script>
+</body>
+</html>

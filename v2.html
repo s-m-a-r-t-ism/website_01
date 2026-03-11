@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smartism — Frame</title>
+  <style>
+    :root { --accent: #c9a96e; --muted: #444; }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; overflow: hidden; background: #050505; color: #d8d8d8; font-family: Georgia, serif; }
+
+    /* ── Top bar ── */
+    .brand {
+      position: fixed; top: 0; left: 0; right: 0; height: 50px;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 20; pointer-events: none;
+    }
+    .brand span {
+      font-size: .78rem; letter-spacing: .46em; text-transform: uppercase;
+      color: #3a3a3a;
+    }
+    .counter {
+      position: fixed; top: 18px; left: 28px;
+      font-size: .6rem; color: var(--muted); letter-spacing: .3em;
+      font-family: sans-serif; text-transform: uppercase; z-index: 20;
+    }
+    .hint-key {
+      position: fixed; top: 18px; right: 28px;
+      font-size: .58rem; color: #252525; letter-spacing: .18em;
+      font-family: sans-serif; text-transform: uppercase; z-index: 20;
+    }
+
+    /* ── Main viewer ── */
+    .viewer {
+      position: fixed; top: 50px; left: 0; right: 0; bottom: 148px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 16px 80px 0;
+    }
+    .img-wrap {
+      flex: 1; min-height: 0; width: 100%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #main-img {
+      max-width: 100%; max-height: 100%; object-fit: contain; display: block;
+      box-shadow: 0 22px 65px rgba(0,0,0,.8);
+      transition: opacity .2s ease;
+    }
+    #main-img.fade { opacity: 0; }
+
+    /* ── Info ── */
+    .info {
+      flex-shrink: 0; text-align: center; padding: 14px 20px 10px;
+      min-height: 54px;
+    }
+    .info-title {
+      font-style: italic; font-size: .95rem; color: #ccc;
+      letter-spacing: .03em; line-height: 1.4;
+    }
+    .info-year {
+      font-size: .6rem; color: var(--accent); letter-spacing: .32em;
+      text-transform: uppercase; font-family: sans-serif; margin-top: 4px;
+    }
+
+    /* ── Nav arrows ── */
+    .arr {
+      position: fixed; top: 50%; margin-top: -22px;
+      background: none; border: 1px solid #1c1c1c; color: var(--muted);
+      width: 44px; height: 44px; font-size: 1.3rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .2s; z-index: 20;
+    }
+    .arr:hover { border-color: var(--accent); color: var(--accent); }
+    #btn-prev { left: 14px; }
+    #btn-next { right: 14px; }
+
+    /* ── Progress bar ── */
+    .progress {
+      position: fixed; bottom: 148px; left: 0; right: 0; height: 1px;
+      background: #161616; z-index: 20;
+    }
+    .prog-fill {
+      height: 100%; background: var(--accent);
+      transition: width .35s cubic-bezier(.25,.46,.45,.94);
+    }
+
+    /* ── Filmstrip ── */
+    .strip {
+      position: fixed; bottom: 0; left: 0; right: 0; height: 148px;
+      border-top: 1px solid #111; background: #070707;
+      display: flex; align-items: center;
+      overflow-x: auto; overflow-y: hidden;
+      gap: 3px; padding: 10px 12px;
+      scroll-behavior: smooth;
+    }
+    .strip::-webkit-scrollbar { height: 3px; }
+    .strip::-webkit-scrollbar-track { background: transparent; }
+    .strip::-webkit-scrollbar-thumb { background: #222; border-radius: 2px; }
+
+    .thumb {
+      flex-shrink: 0; height: 118px; width: auto;
+      cursor: pointer; object-fit: contain;
+      opacity: .35; outline: 2px solid transparent; outline-offset: 0;
+      transition: opacity .22s, outline-color .22s, transform .22s;
+    }
+    .thumb:hover   { opacity: .7; }
+    .thumb.active  { opacity: 1; outline-color: var(--accent); transform: scaleY(1.04); }
+
+    @media (max-width: 700px) {
+      .viewer { padding: 10px 50px 0; }
+      .arr    { width: 36px; height: 36px; font-size: 1.1rem; }
+      .strip  { height: 100px; }
+      .thumb  { height: 78px; }
+      .progress { bottom: 100px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="brand"><span>Smartism</span></div>
+<span class="counter" id="counter"></span>
+<span class="hint-key">← → to navigate</span>
+
+<div class="viewer">
+  <div class="img-wrap"><img id="main-img" src="" alt=""></div>
+  <div class="info">
+    <p class="info-title" id="info-title"></p>
+    <p class="info-year"  id="info-year"></p>
+  </div>
+</div>
+
+<button class="arr" id="btn-prev">&#8249;</button>
+<button class="arr" id="btn-next">&#8250;</button>
+
+<div class="progress"><div class="prog-fill" id="prog-fill"></div></div>
+
+<div class="strip" id="strip"></div>
+
+<script>
+const B = 'images/';
+const data = [
+  {y:2017,t:'CT16',                                                                    f:'img-20170929-195624-198_orig.jpg'},
+  {y:2017,t:'Rag',                                                                     f:'img-20170714-090208-885_orig.jpg'},
+  {y:2017,t:'36,187 Innocent Deaths',                                                  f:'img-20170908-102002-463_orig.jpg'},
+  {y:2017,t:'Oblivious',                                                               f:'img-20170817-204718-276_orig.jpg'},
+  {y:2017,t:'Storm Undone',                                                            f:'20170702-121841_orig.jpg'},
+  {y:2017,t:'Self',                                                                    f:'20170514-002203_orig.jpg'},
+  {y:2017,t:'Untitled',                                                                f:'editor/20170511-073303.jpeg'},
+  {y:2017,t:'First Impressions of Earth',                                              f:'editor/20170422-105252.jpeg'},
+  {y:2017,t:'Infundibulum',                                                            f:'img-20170513-122248_orig.jpg'},
+  {y:2017,t:'Clearvoyance',                                                            f:'editor/20170417-192851.jpeg'},
+  {y:2017,t:'Words that Warmed, Woed and Won',                                         f:'editor/20170126-075928.jpeg'},
+  {y:2017,t:'Tranquillo Tres',                                                         f:'editor/20170312-121840.jpeg'},
+  {y:2017,t:'Beatific',                                                                f:'published/20170417-192918.jpeg'},
+  {y:2017,t:'Title Unknown',                                                           f:'editor/20170117-183551.jpeg'},
+  {y:2017,t:'Atavistic',                                                               f:'editor/20161209-001240.jpeg'},
+  {y:2016,t:'Zusterliefde',                                                            f:'20161120-102724-1_orig.jpg'},
+  {y:2016,t:'Lost',                                                                    f:'1481120765.png'},
+  {y:2016,t:'Unknown Equivalent',                                                      f:'1479395060.png'},
+  {y:2016,t:'Drinkende Man bij Molen tijdens Heldere Nacht',                           f:'20161109-223057_orig.jpg'},
+  {y:2016,t:'Pure, Unaltered, Twinge',                                                 f:'1478861217.png'},
+  {y:2016,t:'Sorrow of a Sight-full Sucker',                                           f:'1481120962.png'},
+  {y:2016,t:'Dancing Figurine on Tantalus Tightrope',                                  f:'1478076617.png'},
+  {y:2016,t:'Kiss of an Icosahedron',                                                  f:'1478076520.png'},
+  {y:2016,t:'Heartfelt',                                                               f:'1478076325.png'},
+  {y:2016,t:'Beauty, Forever, Change',                                                 f:'1478076235.png'},
+  {y:2016,t:'Search Into the Self for Unanswered Backlash',                            f:'1481120511.png'},
+  {y:2016,t:'Punanti Punani',                                                          f:'1475503104.png'},
+  {y:2016,t:'Appealing Afterglow in Perpendicular Apocalypse',                         f:'1476974852.png'},
+  {y:2016,t:'Composition B-166ER',                                                     f:'1475067705.png'},
+  {y:2016,t:'Gutting of the Soul / Sweet Bliss in Unexpected Joyfull Triumph',         f:'1475503590.png'},
+  {y:2016,t:'Titus Quietus',                                                           f:'1475503209.png'},
+  {y:2016,t:'Ratsmodee',                                                               f:'20160912-232146-m_orig.jpg'},
+  {y:2016,t:'Untitled',                                                                f:'zijp-uncontrolled-smackbase-2016_orig.jpg'},
+  {y:2016,t:'...',                                                                     f:'20160902-124715_orig.jpg'},
+  {y:2016,t:'Winner Taco',                                                             f:'1475067345.png'},
+  {y:2015,t:'Coronal Mass Ejection',                                                   f:'1475067908.png'},
+  {y:2015,t:'Brainlike Magnet Drain',                                                  f:'1475067940.png'},
+  {y:2015,t:'Looking out over Kinshasa at Dawn',                                       f:'1464267421.png'},
+  {y:2015,t:'Restless Child during Pedicure',                                          f:'1475067974.png'},
+  {y:2014,t:'Dreaming with Daedalus',                                                  f:'3033594_orig.jpg'},
+  {y:2014,t:'Sissi Insists',                                                           f:'5426135_orig.jpg'},
+  {y:2014,t:'Untitled 3.14',                                                           f:'1475067997.png'},
+  {y:2014,t:'Lachend Kind na Schommel',                                                f:'6606979_orig.jpg'},
+  {y:2014,t:'Vagina with Pears',                                                       f:'1259888_orig.jpg'},
+  {y:2014,t:'Composition Nr. -1',                                                      f:'1259794_orig.jpg'},
+  {y:2013,t:'Untitled 36',                                                             f:'1475068024.png'},
+  {y:2013,t:'Fire Rain Burn',                                                          f:'5102898_orig.jpg'},
+  {y:2013,t:'Trauma bij de Koffie',                                                    f:'5466430_orig.jpg'},
+  {y:2012,t:'Superfly',                                                                f:'3573554_orig.jpg'},
+  {y:2011,t:'Voor Mama',                                                               f:'3342544_orig.jpg'},
+  {y:2011,t:'I Choose to See the Beauty',                                              f:'8886774_orig.jpg'},
+  {y:2011,t:'Love is a Four Letter Word',                                              f:'7820743_orig.jpg'},
+  {y:2010,t:"L'art Poer L'art",                                                        f:'1475068071.png'},
+  {y:2010,t:'Komorebi',                                                                f:'1478861399.png'},
+  {y:2008,t:'Bolletje Beschuitweken',                                                  f:'1475068108.png'},
+];
+
+let cur = 0;
+const mainImg   = document.getElementById('main-img');
+const infoTitle = document.getElementById('info-title');
+const infoYear  = document.getElementById('info-year');
+const counter   = document.getElementById('counter');
+const progFill  = document.getElementById('prog-fill');
+const strip     = document.getElementById('strip');
+let thumbs = [];
+
+/* Build filmstrip */
+data.forEach((p, i) => {
+  const img = document.createElement('img');
+  img.src       = B + p.f;
+  img.alt       = p.t;
+  img.className = 'thumb';
+  img.loading   = 'lazy';
+  img.title     = p.t;
+  img.addEventListener('click', () => show(i));
+  strip.appendChild(img);
+  thumbs.push(img);
+});
+
+function show(i) {
+  cur = i;
+  const p = data[i];
+
+  /* update info */
+  infoTitle.textContent = p.t;
+  infoYear.textContent  = p.y;
+  counter.textContent   = `${String(i + 1).padStart(2, '0')} / ${String(data.length).padStart(2, '0')}`;
+  progFill.style.width  = `${((i + 1) / data.length) * 100}%`;
+
+  /* fade-swap main image */
+  mainImg.classList.add('fade');
+  const tmp = new Image();
+  tmp.onload = () => { mainImg.src = B + p.f; mainImg.classList.remove('fade'); };
+  tmp.src = B + p.f;
+  if (tmp.complete) { mainImg.src = B + p.f; mainImg.classList.remove('fade'); }
+  mainImg.alt = p.t;
+
+  /* update strip */
+  thumbs.forEach((t, j) => t.classList.toggle('active', j === i));
+
+  /* scroll active thumb to center of strip */
+  const th = thumbs[i];
+  const sw = strip.clientWidth;
+  strip.scrollLeft = th.offsetLeft - sw / 2 + th.clientWidth / 2;
+}
+
+document.getElementById('btn-prev').addEventListener('click', () => show((cur - 1 + data.length) % data.length));
+document.getElementById('btn-next').addEventListener('click', () => show((cur + 1) % data.length));
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft')  show((cur - 1 + data.length) % data.length);
+  if (e.key === 'ArrowRight') show((cur + 1) % data.length);
+});
+
+show(0);
+</script>
+</body>
+</html>

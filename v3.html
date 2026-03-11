@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smartism — Diptych</title>
+  <style>
+    :root {
+      --accent:   #c9a96e;
+      --muted:    #505050;
+      --border:   #1c1c1c;
+      --left-bg:  #090909;
+      --right-bg: #111111;
+    }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; overflow: hidden; font-family: Georgia, serif; color: #e0e0e0; }
+
+    /* ── Layout ── */
+    .layout { display: flex; height: 100vh; }
+
+    /* ── Left panel ── */
+    .left {
+      width: 42%; height: 100vh; flex-shrink: 0;
+      background: var(--left-bg);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+    }
+
+    .left-head {
+      padding: 26px 30px 18px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .left-head h1 {
+      font-size: .95rem; letter-spacing: .4em;
+      text-transform: uppercase; font-weight: 400;
+    }
+    .left-head p {
+      font-size: .58rem; color: var(--muted); letter-spacing: .22em;
+      text-transform: uppercase; font-family: sans-serif; margin-top: 5px;
+    }
+
+    .featured {
+      flex: 1; min-height: 0;
+      display: flex; align-items: center; justify-content: center;
+      padding: 22px 26px; position: relative;
+    }
+
+    #feat-img {
+      max-width: 100%; max-height: 100%; object-fit: contain; display: block;
+      box-shadow: 0 18px 52px rgba(0,0,0,.75);
+      transition: opacity .2s ease;
+    }
+    #feat-img.fade { opacity: 0; }
+
+    .left-foot {
+      padding: 16px 30px 22px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .feat-title {
+      font-style: italic; font-size: .88rem; line-height: 1.45;
+      color: #d0d0d0; min-height: 1.3em;
+    }
+    .feat-row {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-top: 8px;
+    }
+    .feat-year {
+      font-size: .58rem; color: var(--accent); letter-spacing: .3em;
+      text-transform: uppercase; font-family: sans-serif;
+    }
+    .feat-idx {
+      font-size: .56rem; color: #2e2e2e; letter-spacing: .2em;
+      font-family: sans-serif;
+    }
+    .nav-row { display: flex; gap: 5px; margin-top: 14px; }
+    .nav-btn {
+      background: none; border: 1px solid #242424; color: #363636;
+      width: 34px; height: 34px; font-size: 1.1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .2s;
+    }
+    .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Right panel ── */
+    .right {
+      flex: 1; height: 100vh; overflow-y: auto;
+      background: var(--right-bg); padding: 18px;
+    }
+    .right::-webkit-scrollbar { width: 4px; }
+    .right::-webkit-scrollbar-track { background: transparent; }
+    .right::-webkit-scrollbar-thumb { background: #222; border-radius: 2px; }
+
+    .right-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-bottom: 14px; border-bottom: 1px solid var(--border);
+      margin-bottom: 14px;
+    }
+    .right-bar span {
+      font-size: .58rem; color: var(--muted); letter-spacing: .22em;
+      text-transform: uppercase; font-family: sans-serif;
+    }
+
+    /* Thumbnail grid — square crops */
+    .tgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+
+    .tcell {
+      aspect-ratio: 1; overflow: hidden; cursor: pointer;
+      position: relative; background: #0e0e0e;
+      outline: 2px solid transparent; outline-offset: -2px;
+      transition: outline-color .2s, transform .2s;
+    }
+    .tcell.active  { outline-color: var(--accent); }
+    .tcell:hover   { transform: scale(1.025); z-index: 2; }
+    .tcell img {
+      width: 100%; height: 100%; object-fit: cover;
+      filter: brightness(.8) saturate(.75);
+      transition: filter .3s;
+    }
+    .tcell:hover img,
+    .tcell.active img { filter: brightness(1) saturate(1); }
+
+    /* Title tooltip on hover */
+    .tcell-label {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: rgba(0,0,0,.84); color: #ddd;
+      font-size: .62rem; font-style: italic;
+      padding: 5px 7px; line-height: 1.2;
+      opacity: 0; transition: opacity .25s;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .tcell:hover .tcell-label { opacity: 1; }
+    .tcell-year {
+      position: absolute; top: 6px; right: 7px;
+      font-size: .54rem; color: var(--accent); letter-spacing: .2em;
+      font-family: sans-serif; text-transform: uppercase;
+      opacity: 0; transition: opacity .25s;
+    }
+    .tcell.active .tcell-year { opacity: .8; }
+
+    /* ── Responsive ── */
+    @media (max-width: 860px) {
+      html, body { overflow: auto; }
+      .layout    { flex-direction: column; height: auto; }
+      .left      { width: 100%; height: auto; }
+      .featured  { min-height: 55vw; }
+      .right     { height: auto; overflow-y: visible; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ── Left: featured ── -->
+  <aside class="left">
+    <div class="left-head">
+      <h1>Smartism</h1>
+      <p>Original Paintings &nbsp;·&nbsp; 2008–2017</p>
+    </div>
+    <div class="featured">
+      <img id="feat-img" src="" alt="">
+    </div>
+    <div class="left-foot">
+      <p class="feat-title" id="feat-title"></p>
+      <div class="feat-row">
+        <span class="feat-year" id="feat-year"></span>
+        <span class="feat-idx"  id="feat-idx"></span>
+      </div>
+      <div class="nav-row">
+        <button class="nav-btn" id="lprev">&#8249;</button>
+        <button class="nav-btn" id="lnext">&#8250;</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Right: thumbnails ── -->
+  <main class="right" id="right">
+    <div class="right-bar">
+      <span id="rbar-label"></span>
+    </div>
+    <div class="tgrid" id="tgrid"></div>
+  </main>
+
+</div>
+
+<script>
+const B = 'images/';
+const data = [
+  {y:2017,t:'CT16',                                                                    f:'img-20170929-195624-198_orig.jpg'},
+  {y:2017,t:'Rag',                                                                     f:'img-20170714-090208-885_orig.jpg'},
+  {y:2017,t:'36,187 Innocent Deaths',                                                  f:'img-20170908-102002-463_orig.jpg'},
+  {y:2017,t:'Oblivious',                                                               f:'img-20170817-204718-276_orig.jpg'},
+  {y:2017,t:'Storm Undone',                                                            f:'20170702-121841_orig.jpg'},
+  {y:2017,t:'Self',                                                                    f:'20170514-002203_orig.jpg'},
+  {y:2017,t:'Untitled',                                                                f:'editor/20170511-073303.jpeg'},
+  {y:2017,t:'First Impressions of Earth',                                              f:'editor/20170422-105252.jpeg'},
+  {y:2017,t:'Infundibulum',                                                            f:'img-20170513-122248_orig.jpg'},
+  {y:2017,t:'Clearvoyance',                                                            f:'editor/20170417-192851.jpeg'},
+  {y:2017,t:'Words that Warmed, Woed and Won',                                         f:'editor/20170126-075928.jpeg'},
+  {y:2017,t:'Tranquillo Tres',                                                         f:'editor/20170312-121840.jpeg'},
+  {y:2017,t:'Beatific',                                                                f:'published/20170417-192918.jpeg'},
+  {y:2017,t:'Title Unknown',                                                           f:'editor/20170117-183551.jpeg'},
+  {y:2017,t:'Atavistic',                                                               f:'editor/20161209-001240.jpeg'},
+  {y:2016,t:'Zusterliefde',                                                            f:'20161120-102724-1_orig.jpg'},
+  {y:2016,t:'Lost',                                                                    f:'1481120765.png'},
+  {y:2016,t:'Unknown Equivalent',                                                      f:'1479395060.png'},
+  {y:2016,t:'Drinkende Man bij Molen tijdens Heldere Nacht',                           f:'20161109-223057_orig.jpg'},
+  {y:2016,t:'Pure, Unaltered, Twinge',                                                 f:'1478861217.png'},
+  {y:2016,t:'Sorrow of a Sight-full Sucker',                                           f:'1481120962.png'},
+  {y:2016,t:'Dancing Figurine on Tantalus Tightrope',                                  f:'1478076617.png'},
+  {y:2016,t:'Kiss of an Icosahedron',                                                  f:'1478076520.png'},
+  {y:2016,t:'Heartfelt',                                                               f:'1478076325.png'},
+  {y:2016,t:'Beauty, Forever, Change',                                                 f:'1478076235.png'},
+  {y:2016,t:'Search Into the Self for Unanswered Backlash',                            f:'1481120511.png'},
+  {y:2016,t:'Punanti Punani',                                                          f:'1475503104.png'},
+  {y:2016,t:'Appealing Afterglow in Perpendicular Apocalypse',                         f:'1476974852.png'},
+  {y:2016,t:'Composition B-166ER',                                                     f:'1475067705.png'},
+  {y:2016,t:'Gutting of the Soul / Sweet Bliss in Unexpected Joyfull Triumph',         f:'1475503590.png'},
+  {y:2016,t:'Titus Quietus',                                                           f:'1475503209.png'},
+  {y:2016,t:'Ratsmodee',                                                               f:'20160912-232146-m_orig.jpg'},
+  {y:2016,t:'Untitled',                                                                f:'zijp-uncontrolled-smackbase-2016_orig.jpg'},
+  {y:2016,t:'...',                                                                     f:'20160902-124715_orig.jpg'},
+  {y:2016,t:'Winner Taco',                                                             f:'1475067345.png'},
+  {y:2015,t:'Coronal Mass Ejection',                                                   f:'1475067908.png'},
+  {y:2015,t:'Brainlike Magnet Drain',                                                  f:'1475067940.png'},
+  {y:2015,t:'Looking out over Kinshasa at Dawn',                                       f:'1464267421.png'},
+  {y:2015,t:'Restless Child during Pedicure',                                          f:'1475067974.png'},
+  {y:2014,t:'Dreaming with Daedalus',                                                  f:'3033594_orig.jpg'},
+  {y:2014,t:'Sissi Insists',                                                           f:'5426135_orig.jpg'},
+  {y:2014,t:'Untitled 3.14',                                                           f:'1475067997.png'},
+  {y:2014,t:'Lachend Kind na Schommel',                                                f:'6606979_orig.jpg'},
+  {y:2014,t:'Vagina with Pears',                                                       f:'1259888_orig.jpg'},
+  {y:2014,t:'Composition Nr. -1',                                                      f:'1259794_orig.jpg'},
+  {y:2013,t:'Untitled 36',                                                             f:'1475068024.png'},
+  {y:2013,t:'Fire Rain Burn',                                                          f:'5102898_orig.jpg'},
+  {y:2013,t:'Trauma bij de Koffie',                                                    f:'5466430_orig.jpg'},
+  {y:2012,t:'Superfly',                                                                f:'3573554_orig.jpg'},
+  {y:2011,t:'Voor Mama',                                                               f:'3342544_orig.jpg'},
+  {y:2011,t:'I Choose to See the Beauty',                                              f:'8886774_orig.jpg'},
+  {y:2011,t:'Love is a Four Letter Word',                                              f:'7820743_orig.jpg'},
+  {y:2010,t:"L'art Poer L'art",                                                        f:'1475068071.png'},
+  {y:2010,t:'Komorebi',                                                                f:'1478861399.png'},
+  {y:2008,t:'Bolletje Beschuitweken',                                                  f:'1475068108.png'},
+];
+
+let cur = 0;
+const featImg   = document.getElementById('feat-img');
+const featTitle = document.getElementById('feat-title');
+const featYear  = document.getElementById('feat-year');
+const featIdx   = document.getElementById('feat-idx');
+const tgrid     = document.getElementById('tgrid');
+const rightEl   = document.getElementById('right');
+document.getElementById('rbar-label').textContent = `${data.length} works`;
+
+let cells = [];
+
+/* Build thumbnail grid */
+data.forEach((p, i) => {
+  const cell = document.createElement('div');
+  cell.className = 'tcell';
+  cell.innerHTML = `
+    <img src="${B + p.f}" alt="${p.t}" loading="lazy" decoding="async">
+    <span class="tcell-label">${p.t}</span>
+    <span class="tcell-year">${p.y}</span>`;
+  cell.addEventListener('click', () => select(i));
+  tgrid.appendChild(cell);
+  cells.push(cell);
+});
+
+function select(i) {
+  cur = i;
+  const p = data[i];
+
+  /* fade-swap featured image */
+  featImg.classList.add('fade');
+  const tmp = new Image();
+  tmp.onload = () => { featImg.src = B + p.f; featImg.classList.remove('fade'); };
+  tmp.src = B + p.f;
+  if (tmp.complete) { featImg.src = B + p.f; featImg.classList.remove('fade'); }
+  featImg.alt = p.t;
+
+  featTitle.textContent = p.t;
+  featYear.textContent  = p.y;
+  featIdx.textContent   = `${i + 1} / ${data.length}`;
+
+  /* highlight active cell */
+  cells.forEach((c, j) => c.classList.toggle('active', j === i));
+
+  /* scroll into view within the right panel */
+  const cell = cells[i];
+  const cellTop    = cell.offsetTop;
+  const cellBottom = cellTop + cell.offsetHeight;
+  const panTop     = rightEl.scrollTop;
+  const panH       = rightEl.clientHeight;
+  if (cellTop < panTop) {
+    rightEl.scrollTop = cellTop - 20;
+  } else if (cellBottom > panTop + panH) {
+    rightEl.scrollTop = cellBottom - panH + 20;
+  }
+}
+
+document.getElementById('lprev').addEventListener('click', () => select((cur - 1 + data.length) % data.length));
+document.getElementById('lnext').addEventListener('click', () => select((cur + 1) % data.length));
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft')  select((cur - 1 + data.length) % data.length);
+  if (e.key === 'ArrowRight') select((cur + 1) % data.length);
+});
+
+select(0);
+</script>
+</body>
+</html>
