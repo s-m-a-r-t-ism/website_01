@@ -19,16 +19,15 @@
 
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     html { scroll-behavior: smooth; }
-
     body {
-      background: #0b2240;   /* ← deep blue, noticeably lighter than before */
+      background: #0b2240;
       color: var(--text);
       font-family: 'Space Grotesk', system-ui, sans-serif;
       font-weight: 300;
       overflow-x: hidden;
     }
 
-    /* ── Starfield canvas ── */
+    /* ── Starfield ── */
     #stars {
       position: fixed; inset: 0;
       width: 100%; height: 100%;
@@ -59,11 +58,11 @@
       animation: nebula-drift-b 38s ease-in-out infinite alternate;
     }
     @keyframes nebula-drift-a {
-      0%   { transform: translate(0,0)     scale(1);    }
-      100% { transform: translate(8vw,6vh) scale(1.15); }
+      0%   { transform: translate(0,0)      scale(1);    }
+      100% { transform: translate(8vw,6vh)  scale(1.15); }
     }
     @keyframes nebula-drift-b {
-      0%   { transform: translate(0,0)      scale(1);   }
+      0%   { transform: translate(0,0)       scale(1);   }
       100% { transform: translate(-6vw,-8vh) scale(1.1); }
     }
 
@@ -90,7 +89,7 @@
       100% { top: 100vh; opacity: 0; }
     }
 
-    header, .slideshow, #lb, footer, .hud-bar { position: relative; z-index: 1; }
+    header, .gallery-section, #lb, footer, .hud-bar { position: relative; z-index: 1; }
 
     /* ═══════════════════════════
        HEADER
@@ -182,166 +181,76 @@
     @keyframes dot-pulse { 0%,100%{opacity:1} 50%{opacity:.15} }
 
     /* ═══════════════════════════
-       SLIDESHOW
+       GALLERY GRID
     ═══════════════════════════ */
-    .slideshow {
-      display: flex; flex-direction: column;
-      align-items: center;
-      min-height: calc(100vh - 310px);
-      padding: 48px 28px 0;
-      overflow: hidden;
+    .gallery-section {
+      padding: 60px 28px 90px;
+    }
+    .gallery {
+      columns: 3;
+      column-gap: 18px;
+      max-width: 1300px;
+      margin: 0 auto;
     }
 
-    /* Two-slot double-buffer stage */
-    .slide-stage {
+    .card {
+      break-inside: avoid;
+      margin-bottom: 18px;
       position: relative;
-      width: 100%; max-width: 980px;
-      flex: 1; min-height: 340px;
-      display: flex; align-items: center; justify-content: center;
-    }
-
-    .slide-slot {
-      position: absolute; inset: 0;
-      display: flex; align-items: center; justify-content: center;
-    }
-
-    .slide-slot img {
-      max-height: 62vh;
-      max-width: min(88vw, 900px);
-      object-fit: contain;
-      display: block;
-      border: 1px solid rgba(0,212,255,.28);
-      box-shadow:
-        0 0 40px rgba(0,212,255,.18),
-        0 0 90px rgba(0,100,200,.12),
-        0 24px 80px rgba(0,0,0,.75);
-      filter: brightness(.9) contrast(1.05) saturate(.92);
       cursor: pointer;
-      user-select: none;
-      transition: box-shadow .4s ease, filter .4s ease;
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity .85s cubic-bezier(.4,0,.2,1),
+                  transform .85s cubic-bezier(.4,0,.2,1);
     }
-    .slide-slot img:hover {
+    .card.in { opacity: 1; transform: none; }
+    .card.animating { z-index: 20; }
+
+    .card-img {
+      position: relative;
+      overflow: hidden;           /* clipped normally; removed in JS during explosion */
+    }
+    .card-img img {
+      display: block;
+      width: 100%; height: auto;
+      filter: brightness(.86) contrast(1.06) saturate(.88);
+      border: 1px solid rgba(0,212,255,.17);
       box-shadow:
-        0 0 60px rgba(0,212,255,.35),
-        0 0 120px rgba(0,100,200,.2),
-        0 24px 80px rgba(0,0,0,.8);
-      filter: brightness(.98) contrast(1.08) saturate(1.05);
+        0 0 14px rgba(0,212,255,.07),
+        0 8px 40px rgba(0,0,20,.65);
+      transition: filter .5s ease, box-shadow .5s ease, transform .5s ease;
+      will-change: transform, opacity, filter;
     }
+    .card:hover .card-img img {
+      filter: brightness(.97) contrast(1.1) saturate(1.06);
+      box-shadow:
+        0 0 28px rgba(0,212,255,.22),
+        0 10px 50px rgba(0,0,20,.7);
+      transform: scale(1.02);
+    }
+    /* during launch, overflow must clip the sliding image */
+    .card-img.launch-clip { overflow: hidden !important; }
 
-    /* ── Exit / Enter animation classes ── */
-    /* Exit: rockets off with rotation + blur */
-    .slot-exit-left {
-      animation: anim-exit-l .46s cubic-bezier(.65,0,.95,.55) forwards;
-    }
-    .slot-exit-right {
-      animation: anim-exit-r .46s cubic-bezier(.65,0,.95,.55) forwards;
-    }
-    /* Enter: slams in with overshoot spring */
-    .slot-enter-right {
-      animation: anim-enter-r .72s cubic-bezier(.15,1.18,.3,1) forwards;
-    }
-    .slot-enter-left {
-      animation: anim-enter-l .72s cubic-bezier(.15,1.18,.3,1) forwards;
-    }
-
-    @keyframes anim-exit-l {
-      0%   { transform: translate(0,0)      rotate(0deg)   scale(1);    opacity:1;   filter:blur(0); }
-      18%  { transform: translate(-12%,0)   rotate(-3deg)  scale(.96);  opacity:.85; filter:blur(2px); }
-      100% { transform: translate(-155%,7%) rotate(-16deg) scale(.62);  opacity:0;   filter:blur(18px); }
-    }
-    @keyframes anim-exit-r {
-      0%   { transform: translate(0,0)     rotate(0deg)   scale(1);    opacity:1;   filter:blur(0); }
-      18%  { transform: translate(12%,0)   rotate(3deg)   scale(.96);  opacity:.85; filter:blur(2px); }
-      100% { transform: translate(155%,7%) rotate(16deg)  scale(.62);  opacity:0;   filter:blur(18px); }
-    }
-    @keyframes anim-enter-r {
-      0%   { transform: translate(155%,-6%)  rotate(13deg)  scale(.65); opacity:.08; filter:blur(16px); }
-      58%  { transform: translate(-3.5%,0)   rotate(-1.2deg) scale(1.03); opacity:1; filter:blur(0); }
-      100% { transform: translate(0,0)       rotate(0deg)   scale(1);   opacity:1;  filter:blur(0); }
-    }
-    @keyframes anim-enter-l {
-      0%   { transform: translate(-155%,-6%) rotate(-13deg) scale(.65); opacity:.08; filter:blur(16px); }
-      58%  { transform: translate(3.5%,0)    rotate(1.2deg) scale(1.03); opacity:1; filter:blur(0); }
-      100% { transform: translate(0,0)       rotate(0deg)   scale(1);   opacity:1;  filter:blur(0); }
-    }
-
-    /* ── Caption ── */
-    .slide-caption {
+    .card-caption {
+      padding: 10px 5px 8px;
+      border-top: 1px solid rgba(0,212,255,.1);
       text-align: center;
-      padding: 26px 20px 6px;
-      max-width: 700px; width: 100%;
     }
-    .slide-catalog {
+    .card-title {
+      font-size: .82rem;
+      color: var(--text);
+      letter-spacing: .03em;
+      line-height: 1.35;
+    }
+    .card-year {
       display: block;
+      margin-top: 4px;
       font-family: 'Orbitron', monospace;
-      font-size: .46rem; letter-spacing: .32em;
-      color: rgba(0,212,255,.38);
+      font-size: .44rem;
+      color: var(--sky);
+      letter-spacing: .24em;
       text-transform: uppercase;
-      margin-bottom: 10px;
-    }
-    .slide-title {
-      font-size: 1.15rem; font-weight: 400;
-      color: var(--bright); letter-spacing: .06em;
-      line-height: 1.4;
-    }
-    .slide-year {
-      display: inline-block;
-      margin-top: 12px;
-      font-family: 'Orbitron', monospace;
-      font-size: .52rem; font-weight: 400;
-      color: var(--sky); letter-spacing: .35em;
-      text-transform: uppercase;
-      padding: 3px 12px;
-      border: 1px solid rgba(0,212,255,.28);
-      background: rgba(0,212,255,.06);
-    }
-
-    /* ── Controls ── */
-    .slide-controls {
-      display: flex; align-items: center;
-      gap: 18px;
-      padding: 24px 28px 44px;
-      width: 100%; max-width: 700px;
-    }
-    .slide-btn {
-      background: rgba(0,212,255,.05);
-      border: 1px solid rgba(0,212,255,.22);
-      color: rgba(0,212,255,.5);
-      font-family: 'Orbitron', monospace;
-      font-size: .5rem; letter-spacing: .2em;
-      text-transform: uppercase;
-      padding: 10px 18px;
-      cursor: pointer;
-      transition: all .22s;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-    .slide-btn:hover {
-      border-color: var(--sky); color: var(--sky);
-      box-shadow: 0 0 14px rgba(0,212,255,.35);
-      background: rgba(0,212,255,.08);
-    }
-    .slide-btn:active { transform: scale(.96); }
-
-    .progress-track {
-      flex: 1; height: 2px;
-      background: rgba(0,212,255,.1);
-      position: relative; overflow: hidden;
-    }
-    .progress-fill {
-      position: absolute; top:0; left:0; bottom:0;
-      width: 0%;
-      background: linear-gradient(90deg, rgba(0,212,255,.3), var(--sky));
-      box-shadow: 0 0 6px var(--sky);
-    }
-
-    .slide-counter {
-      font-family: 'Orbitron', monospace;
-      font-size: .46rem; letter-spacing: .24em;
-      color: rgba(0,212,255,.35);
-      text-transform: uppercase;
-      white-space: nowrap;
-      flex-shrink: 0;
+      opacity: .75;
     }
 
     /* ═══════════════════════════
@@ -360,18 +269,11 @@
       0%   { opacity:0; filter:brightness(2.5) blur(12px); }
       100% { opacity:1; filter:none; }
     }
-    #lb-wrap {
-      flex:1; min-height:0; width:100%;
-      display:flex; align-items:center; justify-content:center;
-    }
+    #lb-wrap { flex:1; min-height:0; width:100%; display:flex; align-items:center; justify-content:center; }
     #lb-img {
-      max-width:100%; max-height:100%;
-      object-fit:contain; display:block;
+      max-width:100%; max-height:100%; object-fit:contain; display:block;
       border: 1px solid rgba(0,212,255,.2);
-      box-shadow:
-        0 0 40px rgba(0,212,255,.2),
-        0 0 100px rgba(0,100,200,.15),
-        0 30px 80px rgba(0,0,0,.9);
+      box-shadow: 0 0 40px rgba(0,212,255,.2), 0 0 100px rgba(0,100,200,.15), 0 30px 80px rgba(0,0,0,.9);
       transition: opacity .2s;
     }
     #lb-img.fade { opacity:0; }
@@ -379,42 +281,29 @@
     .lb-title { font-size:1rem; font-weight:400; color:var(--bright); letter-spacing:.05em; }
     .lb-year {
       display:inline-block;
-      font-family:'Orbitron',monospace;
-      font-size:.55rem; color:var(--sky);
+      font-family:'Orbitron',monospace; font-size:.55rem; color:var(--sky);
       letter-spacing:.35em; text-transform:uppercase;
       margin-top:10px; padding:3px 12px;
-      border:1px solid rgba(0,212,255,.3);
-      background:rgba(0,212,255,.05);
+      border:1px solid rgba(0,212,255,.3); background:rgba(0,212,255,.05);
     }
     #lb-close {
       position:fixed; top:18px; right:22px;
-      background:rgba(0,212,255,.05);
-      border:1px solid rgba(0,212,255,.3);
-      color:rgba(0,212,255,.5);
-      font-size:1.5rem; cursor:pointer;
-      width:44px; height:44px;
-      display:flex; align-items:center; justify-content:center;
+      background:rgba(0,212,255,.05); border:1px solid rgba(0,212,255,.3);
+      color:rgba(0,212,255,.5); font-size:1.5rem; cursor:pointer;
+      width:44px; height:44px; display:flex; align-items:center; justify-content:center;
       transition:all .2s; z-index:10;
     }
-    #lb-close:hover {
-      color:var(--sky); border-color:var(--sky);
-      box-shadow:0 0 16px rgba(0,212,255,.5);
-      transform:rotate(90deg);
-    }
+    #lb-close:hover { color:var(--sky); border-color:var(--sky); box-shadow:0 0 16px rgba(0,212,255,.5); transform:rotate(90deg); }
     #lb-count {
       position:fixed; top:26px; left:50%; transform:translateX(-50%);
-      font-family:'Orbitron',monospace;
-      font-size:.52rem; color:rgba(0,212,255,.35);
+      font-family:'Orbitron',monospace; font-size:.52rem; color:rgba(0,212,255,.35);
       letter-spacing:.3em; text-transform:uppercase;
     }
     .lb-arr {
       position:fixed; top:50%; transform:translateY(-50%);
-      background:rgba(0,212,255,.04);
-      border:1px solid rgba(0,212,255,.2);
-      color:rgba(0,212,255,.4);
-      width:46px; height:46px; font-size:1.5rem; cursor:pointer;
-      display:flex; align-items:center; justify-content:center;
-      transition:all .25s;
+      background:rgba(0,212,255,.04); border:1px solid rgba(0,212,255,.2);
+      color:rgba(0,212,255,.4); width:46px; height:46px; font-size:1.5rem; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; transition:all .25s;
     }
     .lb-arr:hover { border-color:var(--sky); color:var(--sky); box-shadow:0 0 18px rgba(0,212,255,.4); }
     #lb-prev { left:14px; }
@@ -424,35 +313,30 @@
        FOOTER
     ═══════════════════════════ */
     footer {
-      text-align:center;
-      padding:44px 20px 58px;
+      text-align:center; padding:44px 20px 58px;
       border-top:1px solid rgba(0,212,255,.1);
     }
     .foot-rule {
       width:50px; height:1px;
       background:linear-gradient(90deg,transparent,var(--sky),transparent);
-      margin:0 auto 22px;
-      box-shadow:0 0 10px rgba(0,212,255,.5);
+      margin:0 auto 22px; box-shadow:0 0 10px rgba(0,212,255,.5);
     }
-    footer p {
-      font-family:'Orbitron',monospace;
-      font-size:.55rem; color:rgba(0,212,255,.25);
-      letter-spacing:.28em; text-transform:uppercase;
-    }
+    footer p { font-family:'Orbitron',monospace; font-size:.55rem; color:rgba(0,212,255,.25); letter-spacing:.28em; text-transform:uppercase; }
     footer a { color:rgba(0,212,255,.4); text-decoration:none; transition:all .2s; }
     footer a:hover { color:var(--sky); text-shadow:0 0 10px var(--sky); }
     .foot-coords { margin-top:10px; font-size:.46rem; color:rgba(0,212,255,.15); }
 
-    /* ── Responsive ── */
-    @media (max-width: 680px) {
+    @media (max-width: 960px) {
+      .gallery { columns: 2; }
       header { padding: 70px 14px 50px; }
-      .slideshow { padding: 30px 14px 0; }
-      .h-meta { gap: 14px; flex-wrap: wrap; justify-content: center; }
-      .slide-controls { padding: 18px 14px 34px; gap: 10px; }
-      .slide-btn { padding: 8px 10px; font-size: .44rem; }
+      .h-meta { gap: 16px; flex-wrap: wrap; }
       #lb { padding: 50px 30px 50px; }
       .lb-arr { display: none; }
       .hud-bar .hud-right { display: none; }
+    }
+    @media (max-width: 580px) {
+      .gallery { columns: 1; }
+      .gallery-section { padding: 36px 14px 60px; }
     }
   </style>
 </head>
@@ -463,10 +347,8 @@
 <div class="space-grid"></div>
 <div class="radar-sweep"></div>
 
-<!-- Particle burst canvas -->
+<!-- Spark canvas — fixed overlay for card explosions/launches -->
 <canvas id="particles" style="position:fixed;inset:0;width:100%;height:100%;z-index:500;pointer-events:none;"></canvas>
-<!-- Flash overlay -->
-<div id="flash" style="position:fixed;inset:0;z-index:499;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,rgba(0,212,255,.55),transparent 68%);transition:opacity .5s ease;"></div>
 
 <header>
   <p class="h-eyebrow">Deep Space Artifact Archive &nbsp;·&nbsp; Station Omnipotent</p>
@@ -487,25 +369,9 @@
   <span class="hud-right">Signal stable</span>
 </div>
 
-<section class="slideshow">
-  <div class="slide-stage">
-    <div class="slide-slot" id="slot-a"><img id="img-a" src="" alt=""></div>
-    <div class="slide-slot" id="slot-b"><img id="img-b" src="" alt=""></div>
-  </div>
-  <div class="slide-caption">
-    <span class="slide-catalog" id="slide-catalog">Artifact 001</span>
-    <h2 class="slide-title" id="slide-title"></h2>
-    <span class="slide-year" id="slide-year"></span>
-  </div>
-  <div class="slide-controls">
-    <button class="slide-btn" id="slide-prev">◄ Prev</button>
-    <div class="progress-track">
-      <div class="progress-fill" id="progress-fill"></div>
-    </div>
-    <span class="slide-counter" id="slide-counter">001 / 055</span>
-    <button class="slide-btn" id="slide-next">Next ►</button>
-  </div>
-</section>
+<div class="gallery-section">
+  <div class="gallery" id="gallery"></div>
+</div>
 
 <div id="lb">
   <button id="lb-close">✕</button>
@@ -534,8 +400,8 @@
   const ctx    = canvas.getContext('2d');
   function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
   class Star {
-    constructor() { this.reset(true); }
-    reset(initial) {
+    constructor() { this.reset(); }
+    reset() {
       this.x     = Math.random() * canvas.width;
       this.y     = Math.random() * canvas.height;
       this.r     = Math.random() * 1.4 + 0.1;
@@ -564,7 +430,7 @@
     stars.forEach(s => { s.tick(); s.draw(); });
     requestAnimationFrame(frame);
   }
-  window.addEventListener('resize', () => { resize(); stars.forEach(s => s.reset(true)); });
+  window.addEventListener('resize', () => { resize(); stars.forEach(s => s.reset()); });
   resize(); frame();
 })();
 
@@ -631,198 +497,337 @@ const data = [
 ];
 
 /* ══════════════════════════════════════
-   PARTICLE SYSTEM
+   BUILD GALLERY
+══════════════════════════════════════ */
+const gallery    = document.getElementById('gallery');
+const cards      = [];
+const cardDataIdx = data.map((_, i) => i);   // which data entry each card shows
+const cardBusy    = data.map(() => false);
+
+data.forEach((p, i) => {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="card-img">
+      <img src="${B + p.f}" alt="${p.t}" loading="lazy" decoding="async">
+    </div>
+    <div class="card-caption">
+      <span class="card-title">${p.t}</span>
+      <span class="card-year">${p.y}</span>
+    </div>`;
+  card.addEventListener('click', () => { if (!cardBusy[i]) openLb(cardDataIdx[i]); });
+  gallery.appendChild(card);
+  cards.push(card);
+});
+
+/* ── Scroll fade-in ── */
+const io = new IntersectionObserver(entries => {
+  entries.forEach((e, idx) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('in'), idx * 45);
+      io.unobserve(e.target);
+    }
+  });
+}, { threshold: .04, rootMargin: '0px 0px -30px 0px' });
+cards.forEach(c => io.observe(c));
+
+/* ══════════════════════════════════════
+   PARTICLE SPARK SYSTEM
 ══════════════════════════════════════ */
 const pCanvas = document.getElementById('particles');
 const pCtx    = pCanvas.getContext('2d');
-let particles = [], pAnimating = false;
+let   sparks  = [], sparkRunning = false;
 
 function resizeP() { pCanvas.width = window.innerWidth; pCanvas.height = window.innerHeight; }
 resizeP();
 window.addEventListener('resize', resizeP);
 
-function spawnBurst() {
-  const cx = window.innerWidth / 2, cy = window.innerHeight * .45;
-  const cols = ['0,212,255', '64,128,255', '160,210,255', '100,180,255', '0,160,220'];
-  for (let i = 0; i < 100; i++) {
-    const ang = Math.random() * Math.PI * 2;
-    const spd = Math.random() * 16 + 2;
-    particles.push({
-      x:  cx + (Math.random() - .5) * 320,
-      y:  cy + (Math.random() - .5) * 220,
-      vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd,
-      life: 1, decay: Math.random() * 0.022 + 0.01,
-      r: Math.random() * 4 + 0.5,
-      col: cols[Math.floor(Math.random() * cols.length)]
+/* Spawn sparks at a card's screen position */
+function spawnSparks(card, count) {
+  const rect  = card.querySelector('.card-img').getBoundingClientRect();
+  const cx    = rect.left + rect.width  * .5;
+  const cy    = rect.top  + rect.height * .5;
+  const palettes = ['0,212,255', '255,140,0', '255,55,25', '180,220,255', '255,200,70', '0,255,180'];
+
+  for (let i = 0; i < count; i++) {
+    const ang    = Math.random() * Math.PI * 2;
+    const spd    = Math.random() * 15 + 3;
+    const streak = Math.random() < .55;
+    sparks.push({
+      x:  cx + (Math.random() - .5) * rect.width  * .65,
+      y:  cy + (Math.random() - .5) * rect.height * .4,
+      vx: Math.cos(ang) * spd,
+      vy: Math.sin(ang) * spd - Math.random() * 2,
+      life: 1,
+      decay: Math.random() * .032 + .018,
+      r:    Math.random() * (streak ? 1.4 : 2.8) + .4,
+      col:  palettes[Math.floor(Math.random() * palettes.length)],
+      drag: Math.random() * .04 + .87,
+      streak,
     });
   }
-  if (!pAnimating) { pAnimating = true; tickP(); }
+  if (!sparkRunning) { sparkRunning = true; tickSparks(); }
 }
 
-function tickP() {
+function tickSparks() {
   pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
-  particles.forEach(p => {
-    p.x += p.vx; p.y += p.vy;
-    p.vx *= 0.92; p.vy *= 0.92;
-    p.life -= p.decay;
-    if (p.life > 0) {
+  sparks.forEach(s => {
+    s.x  += s.vx;  s.y  += s.vy;
+    s.vx *= s.drag; s.vy *= s.drag;
+    s.vy += .18;     // gravity
+    s.life -= s.decay;
+    if (s.life <= 0) return;
+    if (s.streak) {
+      pCtx.save();
+      pCtx.globalAlpha = s.life * .85;
+      pCtx.strokeStyle = `rgb(${s.col})`;
+      pCtx.lineWidth   = s.r * s.life;
+      pCtx.lineCap     = 'round';
       pCtx.beginPath();
-      pCtx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2);
-      pCtx.fillStyle = `rgba(${p.col},${p.life.toFixed(2)})`;
+      pCtx.moveTo(s.x, s.y);
+      pCtx.lineTo(s.x - s.vx * 2.8, s.y - s.vy * 2.8);
+      pCtx.stroke();
+      pCtx.restore();
+    } else {
+      pCtx.beginPath();
+      pCtx.arc(s.x, s.y, Math.max(.1, s.r * s.life), 0, Math.PI * 2);
+      pCtx.fillStyle = `rgba(${s.col},${s.life.toFixed(2)})`;
       pCtx.fill();
     }
   });
-  particles = particles.filter(p => p.life > 0);
-  if (particles.length) requestAnimationFrame(tickP);
-  else pAnimating = false;
+  sparks = sparks.filter(s => s.life > 0);
+  if (sparks.length) requestAnimationFrame(tickSparks);
+  else sparkRunning = false;
 }
 
 /* ══════════════════════════════════════
-   SLIDESHOW
+   SHARD GEOMETRY  (jittered triangle grid)
 ══════════════════════════════════════ */
-const slotA   = document.getElementById('slot-a');
-const slotB   = document.getElementById('slot-b');
-const imgA    = document.getElementById('img-a');
-const imgB    = document.getElementById('img-b');
-const elTitle = document.getElementById('slide-title');
-const elYear  = document.getElementById('slide-year');
-const elCat   = document.getElementById('slide-catalog');
-const elCount = document.getElementById('slide-counter');
-const pFill   = document.getElementById('progress-fill');
-const flash   = document.getElementById('flash');
-
-let current   = 0;
-let activeSlot = 'a';  // which slot is currently showing
-let animating  = false;
-let progTimer  = null;
-const DURATION = 6000;
-
-function slot(id)  { return id === 'a' ? slotA : slotB; }
-function img(id)   { return id === 'a' ? imgA  : imgB;  }
-function other(id) { return id === 'a' ? 'b' : 'a'; }
-
-function updateCaption(i) {
-  const p = data[i];
-  elTitle.textContent = p.t;
-  elYear.textContent  = p.y;
-  elCat.textContent   = `Artifact ${String(i + 1).padStart(3, '0')}`;
-  elCount.textContent = `${String(i + 1).padStart(3, '0')} / ${String(data.length).padStart(3, '0')}`;
+function generateShards(w, h) {
+  const cols = 4, rows = 3;
+  const pts  = [];
+  for (let r = 0; r <= rows; r++) {
+    for (let c = 0; c <= cols; c++) {
+      let x = c / cols * w;
+      let y = r / rows * h;
+      /* jitter interior points only */
+      if (c > 0 && c < cols) x += (Math.random() - .5) * (w / cols) * .72;
+      if (r > 0 && r < rows) y += (Math.random() - .5) * (h / rows) * .72;
+      pts.push([x, y]);
+    }
+  }
+  const get = (r, c) => pts[r * (cols + 1) + c];
+  const tris = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      /* alternate diagonal so shards look more irregular */
+      if ((r + c) % 2 === 0) {
+        tris.push([get(r,c), get(r,c+1), get(r+1,c+1)]);
+        tris.push([get(r,c), get(r+1,c+1), get(r+1,c)]);
+      } else {
+        tris.push([get(r,c), get(r,c+1), get(r+1,c)]);
+        tris.push([get(r,c+1), get(r+1,c+1), get(r+1,c)]);
+      }
+    }
+  }
+  return tris;
 }
 
-function triggerFlash() {
-  flash.style.transition = 'none';
-  flash.style.opacity    = '.55';
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    flash.style.transition = 'opacity .55s ease';
-    flash.style.opacity    = '0';
-  }));
+/* ══════════════════════════════════════
+   EXPLOSION ANIMATION
+   — image shatters into sharp triangular shards
+══════════════════════════════════════ */
+function triggerExplosion(cardIdx, newDataIdx, done) {
+  const card    = cards[cardIdx];
+  const cardImg = card.querySelector('.card-img');
+  const imgEl   = cardImg.querySelector('img');
+  const w = imgEl.offsetWidth;
+  const h = imgEl.offsetHeight;
+
+  if (!w || !h) { done && done(); return; }
+
+  card.classList.add('animating');
+  cardImg.style.overflow = 'visible'; /* let shards escape the frame */
+
+  const tris   = generateShards(w, h);
+  const cx     = w / 2, cy = h / 2;
+  const imgSrc = imgEl.src;
+
+  /* hide original image — shards will show it */
+  imgEl.style.opacity = '0';
+
+  /* bright cyan flash at the moment of detonation */
+  const flashEl = document.createElement('div');
+  flashEl.style.cssText = `
+    position:absolute;inset:0;z-index:8;pointer-events:none;
+    background:radial-gradient(ellipse at center, rgba(0,212,255,.85) 0%, rgba(0,212,255,.1) 55%, transparent 75%);
+  `;
+  cardImg.appendChild(flashEl);
+  requestAnimationFrame(() => {
+    flashEl.style.transition = 'opacity .38s ease';
+    flashEl.style.opacity = '0';
+    setTimeout(() => flashEl.remove(), 420);
+  });
+
+  /* container holds all shard divs; must overflow */
+  const container = document.createElement('div');
+  container.style.cssText = `
+    position:absolute;top:0;left:0;
+    width:${w}px;height:${h}px;
+    z-index:6;pointer-events:none;overflow:visible;
+  `;
+  cardImg.appendChild(container);
+
+  /* build one div per triangle, each showing the painting clipped to that polygon */
+  const shardData = tris.map(tri => {
+    const div  = document.createElement('div');
+    const poly = tri.map(([px, py]) => `${px.toFixed(1)}px ${py.toFixed(1)}px`).join(',');
+    div.style.cssText = [
+      'position:absolute', 'top:0', 'left:0',
+      `width:${w}px`, `height:${h}px`,
+      `clip-path:polygon(${poly})`,
+      `background-image:url("${imgSrc}")`,
+      `background-size:${w}px ${h}px`,
+      'background-repeat:no-repeat',
+      'will-change:transform,opacity',
+    ].join(';');
+    container.appendChild(div);
+    return {
+      el: div,
+      centX: tri.reduce((s, [px]) => s + px, 0) / 3,
+      centY: tri.reduce((s, [, py]) => s + py, 0) / 3,
+    };
+  });
+
+  /* spawn sparks */
+  spawnSparks(card, 65);
+
+  /* explode shards outward on next frame */
+  requestAnimationFrame(() => {
+    shardData.forEach(({ el, centX, centY }) => {
+      const dx  = (centX - cx) * (Math.random() * 8 + 3.5);
+      const dy  = (centY - cy) * (Math.random() * 8 + 2.5) - Math.random() * 90;
+      const rot = (Math.random() - .5) * 1600;
+      const sc  = Math.random() * .22 + .02;
+      const dur = +(Math.random() * .28 + .42).toFixed(2);
+      const del = +(Math.random() * .09).toFixed(2);
+      el.style.transition =
+        `transform ${dur}s cubic-bezier(.18,.04,.82,.08) ${del}s,` +
+        `opacity ${(dur * .82).toFixed(2)}s ease ${del}s`;
+      el.style.transform = `translate(${dx}px,${dy}px) rotate(${rot}deg) scale(${sc})`;
+      el.style.opacity   = '0';
+    });
+  });
+
+  /* after shards disperse: reveal new painting */
+  setTimeout(() => {
+    const p = data[newDataIdx];
+    imgEl.src = B + p.f;
+    card.querySelector('.card-title').textContent = p.t;
+    card.querySelector('.card-year').textContent  = p.y;
+    cardDataIdx[cardIdx] = newDataIdx;
+
+    imgEl.style.transition = 'opacity .5s ease';
+    imgEl.style.opacity    = '1';
+
+    setTimeout(() => {
+      container.remove();
+      cardImg.style.overflow = '';
+      imgEl.style.transition = '';
+      card.classList.remove('animating');
+      done && done();
+    }, 600);
+  }, 720);
 }
 
-function startProgress() {
-  clearTimeout(progTimer);
-  pFill.style.transition = 'none';
-  pFill.style.width = '0%';
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    pFill.style.transition = `width ${DURATION}ms linear`;
-    pFill.style.width = '100%';
-  }));
-  progTimer = setTimeout(() => goTo(current + 1, 1), DURATION);
+/* ══════════════════════════════════════
+   LAUNCH ANIMATION
+   — image rockets off-screen, new one flies in
+══════════════════════════════════════ */
+function triggerLaunch(cardIdx, newDataIdx, done) {
+  const card    = cards[cardIdx];
+  const cardImg = card.querySelector('.card-img');
+  const imgEl   = cardImg.querySelector('img');
+  const dir     = Math.random() < .5 ? 1 : -1;   /* left or right */
+
+  card.classList.add('animating');
+  cardImg.style.overflow = 'hidden'; /* clip the sliding image at frame edge */
+  spawnSparks(card, 25);
+
+  /* — LAUNCH OUT — */
+  imgEl.style.transition =
+    'transform .30s cubic-bezier(.78,0,1,.65),' +
+    'opacity .26s ease,' +
+    'filter .26s ease';
+  imgEl.style.transform = `translateX(${dir * 145}%) rotate(${dir * 14}deg) scale(.58)`;
+  imgEl.style.opacity   = '0';
+  imgEl.style.filter    = 'blur(8px)';
+
+  setTimeout(() => {
+    /* switch painting */
+    const p = data[newDataIdx];
+    imgEl.src = B + p.f;
+    card.querySelector('.card-title').textContent = p.t;
+    card.querySelector('.card-year').textContent  = p.y;
+    cardDataIdx[cardIdx] = newDataIdx;
+
+    /* position instantly on the opposite side */
+    imgEl.style.transition = 'none';
+    imgEl.style.transform  = `translateX(${-dir * 145}%) rotate(${-dir * 11}deg) scale(.58)`;
+    imgEl.style.opacity    = '0';
+    imgEl.style.filter     = 'blur(8px)';
+
+    imgEl.offsetHeight; /* force reflow */
+
+    /* — FLY IN with spring overshoot — */
+    imgEl.style.transition =
+      'transform .64s cubic-bezier(.15,1.18,.3,1),' +
+      'opacity .52s ease .05s,' +
+      'filter .52s ease .05s';
+    imgEl.style.transform = 'translateX(0) rotate(0deg) scale(1)';
+    imgEl.style.opacity   = '1';
+    imgEl.style.filter    = 'blur(0px)';
+
+    setTimeout(() => {
+      imgEl.style.transition = '';
+      imgEl.style.transform  = '';
+      imgEl.style.filter     = '';
+      cardImg.style.overflow = '';
+      card.classList.remove('animating');
+      done && done();
+    }, 720);
+  }, 340);
 }
 
-function preload(i) {
-  [(i + 1) % data.length, (i - 1 + data.length) % data.length]
-    .forEach(idx => { const x = new Image(); x.src = B + data[idx].f; });
+/* ══════════════════════════════════════
+   SCHEDULER
+   — staggered random timers per card
+══════════════════════════════════════ */
+function pickNext(curIdx) {
+  let n;
+  do { n = Math.floor(Math.random() * data.length); } while (n === curIdx);
+  return n;
 }
 
-function removeClass(el, ...cls) { cls.forEach(c => el.classList.remove(c)); }
-
-async function goTo(newIdx, dir) {
-  if (animating) return;
-  newIdx = ((newIdx % data.length) + data.length) % data.length;
-  if (newIdx === current) return;
-  animating = true;
-  clearTimeout(progTimer);
-
-  const outId = activeSlot;
-  const inId  = other(activeSlot);
-  const outSlot = slot(outId);
-  const inSlot  = slot(inId);
-  const inImg   = img(inId);
-
-  // Load new image into inactive slot and position it off-screen instantly
-  inImg.src = B + data[newIdx].f;
-  inSlot.style.transition = 'none';
-  inSlot.style.opacity    = '0.08';
-  inSlot.style.filter     = 'blur(16px)';
-  inSlot.style.transform  = dir > 0
-    ? 'translate(155%,-6%) rotate(13deg) scale(.65)'
-    : 'translate(-155%,-6%) rotate(-13deg) scale(.65)';
-  inSlot.style.zIndex  = '1';
-  outSlot.style.zIndex = '2';
-
-  spawnBurst();
-  triggerFlash();
-
-  // Force reflow so instant position is painted before transitions begin
-  inSlot.offsetHeight;
-
-  // Animate OUT
-  outSlot.style.transition = 'transform .46s cubic-bezier(.65,0,.95,.55), opacity .4s ease, filter .4s ease';
-  outSlot.style.transform  = dir > 0
-    ? 'translate(-155%,7%) rotate(-16deg) scale(.62)'
-    : 'translate(155%,7%) rotate(16deg) scale(.62)';
-  outSlot.style.opacity = '0';
-  outSlot.style.filter  = 'blur(18px)';
-
-  // Animate IN simultaneously
-  inSlot.style.transition = 'transform .72s cubic-bezier(.15,1.18,.3,1), opacity .5s ease .08s, filter .5s ease .08s';
-  inSlot.style.transform  = 'translate(0,0) rotate(0deg) scale(1)';
-  inSlot.style.opacity    = '1';
-  inSlot.style.filter     = 'blur(0px)';
-  inSlot.style.zIndex     = '2';
-  outSlot.style.zIndex    = '1';
-
-  current = newIdx;
-  updateCaption(current);
-
-  await new Promise(r => setTimeout(r, 760));
-
-  // Reset out-slot silently
-  outSlot.style.transition = 'none';
-  outSlot.style.opacity    = '0';
-  outSlot.style.transform  = '';
-  outSlot.style.filter     = '';
-
-  activeSlot = inId;
-  animating  = false;
-
-  startProgress();
-  preload(current);
+function scheduleCard(i) {
+  /* 90 – 200 s between fires per card → steady-state ~1 anim every 2-3 s across the grid */
+  const delay = Math.random() * 110000 + 90000;
+  setTimeout(() => runCardAnim(i), delay);
 }
 
-// Init: show first painting in slot A, slot B hidden
-imgA.src = B + data[0].f;
-slotA.style.zIndex  = '2';
-slotA.style.opacity = '1';
-slotB.style.opacity = '0';
-updateCaption(0);
-startProgress();
-preload(0);
+function runCardAnim(i) {
+  if (cardBusy[i]) { scheduleCard(i); return; }
+  cardBusy[i] = true;
+  const next = pickNext(cardDataIdx[i]);
+  /* 40% launch, 60% explosion */
+  const anim = Math.random() < .4 ? triggerLaunch : triggerExplosion;
+  anim(i, next, () => { cardBusy[i] = false; scheduleCard(i); });
+}
 
-// Click image → open lightbox
-imgA.addEventListener('click', () => openLb(current));
-imgB.addEventListener('click', () => openLb(current));
-
-// Buttons
-document.getElementById('slide-prev').addEventListener('click', () => goTo(current - 1, -1));
-document.getElementById('slide-next').addEventListener('click', () => goTo(current + 1,  1));
-
-// Touch swipe
-let touchX = 0;
-document.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; }, { passive: true });
-document.addEventListener('touchend',   e => {
-  const dx = e.changedTouches[0].clientX - touchX;
-  if (Math.abs(dx) > 55) goTo(current + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1);
+/* Initial stagger: spread first fires across first ~2.5 minutes */
+cards.forEach((_, i) => {
+  const firstDelay = 10000 + i * 2400 + Math.random() * 38000;
+  setTimeout(() => runCardAnim(i), firstDelay);
 });
 
 /* ══════════════════════════════════════
@@ -833,7 +838,7 @@ const lbImg = document.getElementById('lb-img');
 const lbT   = document.getElementById('lb-title');
 const lbY   = document.getElementById('lb-year');
 const lbC   = document.getElementById('lb-count');
-let lbCur = 0;
+let lbCur   = 0;
 
 function lbLoad(i) {
   lbCur = i;
@@ -857,17 +862,11 @@ document.getElementById('lb-prev').addEventListener('click', e => {
 document.getElementById('lb-next').addEventListener('click', e => {
   e.stopPropagation(); lbLoad((lbCur + 1) % data.length);
 });
-
-// Keyboard: arrows navigate slideshow when lb closed, navigate lb when open
 document.addEventListener('keydown', e => {
-  if (lb.classList.contains('open')) {
-    if (e.key === 'Escape')     closeLb();
-    if (e.key === 'ArrowLeft')  lbLoad((lbCur - 1 + data.length) % data.length);
-    if (e.key === 'ArrowRight') lbLoad((lbCur + 1) % data.length);
-  } else {
-    if (e.key === 'ArrowLeft')  goTo(current - 1, -1);
-    if (e.key === 'ArrowRight') goTo(current + 1,  1);
-  }
+  if (!lb.classList.contains('open')) return;
+  if (e.key === 'Escape')     closeLb();
+  if (e.key === 'ArrowLeft')  lbLoad((lbCur - 1 + data.length) % data.length);
+  if (e.key === 'ArrowRight') lbLoad((lbCur + 1) % data.length);
 });
 </script>
 </body>
