@@ -645,27 +645,28 @@
 
     /* ── Page navigation ── */
     .page-nav {
-      position: fixed; top: 0; left: 50%; transform: translateX(-50%);
-      z-index: 200;
-      display: flex; gap: 2px;
-      background: rgba(2,12,26,.92);
-      border: 1px solid rgba(0,212,255,.15);
-      border-top: none;
-      padding: 7px 12px;
-      border-radius: 0 0 5px 5px;
-      backdrop-filter: blur(8px);
+      display: flex; justify-content: center; align-items: center; gap: 8px;
+      padding: 22px 0 28px;
+      border-bottom: 1px solid rgba(0,212,255,.08);
+      position: relative; z-index: 2;
     }
     .pn {
       display: flex; align-items: center; justify-content: center;
-      width: 30px; height: 30px;
+      width: 52px; height: 52px;
       color: rgba(0,212,255,.22);
       text-decoration: none;
-      transition: color .2s, filter .2s;
+      transition: color .2s, filter .2s, border-color .2s;
+      border: 1px solid rgba(0,212,255,.12);
     }
-    .pn svg { width: 13px; height: 13px; }
-    .pn:hover { color: rgba(0,212,255,.8); filter: drop-shadow(0 0 4px rgba(0,212,255,.6)); }
+    .pn svg { width: 22px; height: 22px; }
+    .pn:hover {
+      color: rgba(0,212,255,.8);
+      filter: drop-shadow(0 0 4px rgba(0,212,255,.6));
+      border-color: rgba(0,212,255,.35);
+    }
     .pn.pn-active {
       color: rgba(0,212,255,.9);
+      border-color: rgba(0,212,255,.35);
       animation: pn-pulse 3s ease-in-out infinite;
     }
     @keyframes pn-pulse {
@@ -675,18 +676,6 @@
   </style>
 </head>
 <body>
-
-<nav class="page-nav">
-  <a href="version4.html" class="pn" title="">
-    <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.2"/></svg>
-  </a>
-  <a href="version7.html" class="pn" title="">
-    <svg viewBox="0 0 16 16" fill="none"><polygon points="8,2 14.5,13.5 1.5,13.5" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
-  </a>
-  <a href="version8.html" class="pn pn-active" title="">
-    <svg viewBox="0 0 16 16" fill="none"><polygon points="8,1.5 14.5,8 8,14.5 1.5,8" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
-  </a>
-</nav>
 
 <!-- Starfield -->
 <canvas id="stars"></canvas>
@@ -728,6 +717,18 @@
   <span>52°22′N &nbsp;4°54′E</span>
   <span class="hud-right">Signal stable</span>
 </div>
+
+<nav class="page-nav">
+  <a href="version4.html" class="pn" title="">
+    <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.2"/></svg>
+  </a>
+  <a href="version7.html" class="pn" title="">
+    <svg viewBox="0 0 16 16" fill="none"><polygon points="8,2 14.5,13.5 1.5,13.5" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+  </a>
+  <a href="version8.html" class="pn pn-active" title="">
+    <svg viewBox="0 0 16 16" fill="none"><polygon points="8,1.5 14.5,8 8,14.5 1.5,8" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+  </a>
+</nav>
 
 <div class="gallery" id="gallery"></div>
 
