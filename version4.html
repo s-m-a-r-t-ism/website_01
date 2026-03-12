@@ -158,9 +158,43 @@
       .gallery { columns: 1; padding: 50px 20px 70px; }
       header   { padding: 72px 20px 52px; }
     }
+
+    /* ── Page navigation ── */
+    .page-nav {
+      position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+      z-index: 200;
+      display: flex; gap: 2px;
+      background: rgba(0,0,0,.92);
+      border: 1px solid #1a1a1a;
+      border-top: none;
+      padding: 7px 12px;
+      border-radius: 0 0 5px 5px;
+    }
+    .pn {
+      display: flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px;
+      color: #2c2c2c;
+      text-decoration: none;
+      transition: color .25s;
+    }
+    .pn svg { width: 13px; height: 13px; }
+    .pn:hover { color: #666; }
+    .pn.pn-active { color: var(--gold); }
   </style>
 </head>
 <body>
+
+<nav class="page-nav">
+  <a href="version4.html" class="pn pn-active" title="">
+    <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.2"/></svg>
+  </a>
+  <a href="version7.html" class="pn" title="">
+    <svg viewBox="0 0 16 16" fill="none"><polygon points="8,2 14.5,13.5 1.5,13.5" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+  </a>
+  <a href="version8.html" class="pn" title="">
+    <svg viewBox="0 0 16 16" fill="none"><polygon points="8,1.5 14.5,8 8,14.5 1.5,8" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+  </a>
+</nav>
 
 <header>
   <h1 class="h-name">Smartism</h1>

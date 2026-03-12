@@ -543,9 +543,53 @@
       #lb      { padding: 50px 30px 50px; }
       .lb-arr  { display: none; }
     }
+
+    /* ── Page navigation ── */
+    .page-nav {
+      position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+      z-index: 10000;
+      display: flex; gap: 4px;
+      background: rgba(0,0,0,.92);
+      border: 1px solid #ff00ff22;
+      border-top: none;
+      padding: 7px 12px;
+      border-radius: 0 0 5px 5px;
+    }
+    .pn {
+      display: flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px;
+      color: #ff00ff28;
+      text-decoration: none;
+      transition: color .2s, filter .2s;
+    }
+    .pn svg { width: 13px; height: 13px; }
+    .pn:hover { color: #ff00ff; filter: drop-shadow(0 0 4px #ff00ff88); }
+    .pn.pn-active {
+      color: #ff00ff;
+      filter: drop-shadow(0 0 6px #ff00ffaa);
+      animation: nav-glitch .5s steps(1) infinite;
+    }
+    @keyframes nav-glitch {
+      0%, 82%, 100% { filter: drop-shadow(0 0 6px #ff00ffaa); color: #ff00ff; }
+      84%           { filter: drop-shadow(0 0 6px #00ffff88); color: #00ffff; }
+      87%           { filter: none; color: #ff00ff33; }
+      90%           { filter: drop-shadow(0 0 8px #ff00ff); color: #ff00ff; }
+    }
   </style>
 </head>
 <body>
+
+<nav class="page-nav">
+  <a href="version4.html" class="pn" title="">
+    <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.2"/></svg>
+  </a>
+  <a href="version7.html" class="pn pn-active" title="">
+    <svg viewBox="0 0 16 16" fill="none"><polygon points="8,2 14.5,13.5 1.5,13.5" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+  </a>
+  <a href="version8.html" class="pn" title="">
+    <svg viewBox="0 0 16 16" fill="none"><polygon points="8,1.5 14.5,8 8,14.5 1.5,8" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+  </a>
+</nav>
 
 <!-- Animated film grain noise -->
 <svg class="noise-svg" xmlns="http://www.w3.org/2000/svg">
