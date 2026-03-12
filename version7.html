@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SMARTISM /// FEVER DREAM</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/x-icon"  href="favicon.ico">
+  <style>
+    :root {
+      --m: #ff00ff;
+      --c: #00ffff;
+      --g: #39ff14;
+      --o: #ff6600;
+      --p: #ff0066;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: #000;
+      color: #fff;
+      font-family: 'Courier New', Courier, monospace;
+      overflow-x: hidden;
+    }
+
+    /* ── Scanlines ── */
+    body::after {
+      content: '';
+      position: fixed; inset: 0; z-index: 9998; pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent 0px, transparent 2px,
+        rgba(0,0,0,.13) 2px, rgba(0,0,0,.13) 4px
+      );
+    }
+
+    /* ── CRT vignette ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 9997; pointer-events: none;
+      background: radial-gradient(ellipse at center, transparent 52%, rgba(0,0,0,.72) 100%);
+    }
+
+    /* ── HEADER ── */
+    header {
+      text-align: center;
+      padding: 100px 20px 68px;
+      border-bottom: 1px solid #ff00ff33;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header .bg-blobs {
+      position: absolute; inset: -60%; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(circle at 18% 55%, rgba(255,0,255,.09) 0%, transparent 45%),
+        radial-gradient(circle at 82% 45%, rgba(0,255,255,.09) 0%, transparent 45%),
+        radial-gradient(circle at 50% 95%, rgba(57,255,20,.06) 0%, transparent 35%);
+      animation: blob-drift 10s ease-in-out infinite alternate;
+    }
+    @keyframes blob-drift {
+      0%   { transform: scale(1)    rotate(0deg);  }
+      100% { transform: scale(1.08) rotate(6deg);  }
+    }
+
+    header > * { position: relative; z-index: 1; }
+
+    .h-name {
+      position: relative;
+      font-size: clamp(3.2rem, 10vw, 9.5rem);
+      font-weight: 700;
+      letter-spacing: .3em;
+      text-indent: .3em;
+      text-transform: uppercase;
+      line-height: 1;
+      color: #ff00ff;
+      text-shadow: 0 0 12px #ff00ff, 0 0 35px #ff00ff88, 0 0 70px #ff00ff44;
+      animation: hdr-flicker 7s infinite;
+    }
+
+    @keyframes hdr-flicker {
+      0%, 94%, 96%, 98%, 100% { opacity: 1; }
+      95%  { opacity: .3; }
+      97%  { opacity: .8; }
+      99%  { opacity: .15; }
+    }
+
+    /* Glitch layer A — cyan */
+    .h-name::before {
+      content: attr(data-text);
+      position: absolute; top: 0; left: 0; right: 0;
+      color: #00ffff;
+      text-shadow: 0 0 10px #00ffff;
+      text-indent: .3em;
+      animation: glitch-a 5s infinite steps(1) .15s;
+    }
+
+    /* Glitch layer B — acid green */
+    .h-name::after {
+      content: attr(data-text);
+      position: absolute; top: 0; left: 0; right: 0;
+      color: #39ff14;
+      text-shadow: 0 0 10px #39ff14;
+      text-indent: .3em;
+      animation: glitch-b 5s infinite steps(1) .45s;
+    }
+
+    @keyframes glitch-a {
+      0%, 78%, 100% { clip-path: inset(100% 0 0 0); transform: translate(0); }
+      80%  { clip-path: inset(4%  0 89% 0); transform: translate(5px);  }
+      82%  { clip-path: inset(55% 0 30% 0); transform: translate(-5px); }
+      84%  { clip-path: inset(22% 0 62% 0); transform: translate(3px);  }
+      86%  { clip-path: inset(72% 0 12% 0); transform: translate(-3px); }
+      88%  { clip-path: inset(38% 0 50% 0); transform: translate(6px);  }
+      90%  { clip-path: inset(100% 0 0 0);  transform: translate(0);    }
+    }
+
+    @keyframes glitch-b {
+      0%, 82%, 100% { clip-path: inset(100% 0 0 0); transform: translate(0); }
+      84%  { clip-path: inset(28% 0 58% 0); transform: translate(-6px); }
+      86%  { clip-path: inset(76% 0  7% 0); transform: translate(6px);  }
+      88%  { clip-path: inset(10% 0 80% 0); transform: translate(-4px); }
+      90%  { clip-path: inset(58% 0 28% 0); transform: translate(4px);  }
+      92%  { clip-path: inset(100% 0 0 0);  transform: translate(0);    }
+    }
+
+    .h-rule {
+      width: 60px; height: 2px;
+      background: linear-gradient(90deg, #ff00ff, #00ffff);
+      margin: 30px auto 22px;
+      box-shadow: 0 0 12px #ff00ff88;
+    }
+
+    .h-sub {
+      font-size: .75rem;
+      letter-spacing: .45em;
+      text-indent: .45em;
+      text-transform: uppercase;
+      color: #00ffff;
+      text-shadow: 0 0 10px #00ffff;
+      animation: sub-flicker 9s infinite;
+    }
+
+    @keyframes sub-flicker {
+      0%, 58%, 60%, 62%, 100% { opacity: 1; }
+      59%  { opacity: 0;   }
+      61%  { opacity: .6;  }
+    }
+
+    .h-tag {
+      margin-top: 12px;
+      font-size: .52rem;
+      letter-spacing: .18em;
+      color: #39ff1433;
+      animation: tag-pulse 4s ease-in-out infinite alternate;
+    }
+
+    @keyframes tag-pulse {
+      0%   { color: #39ff1422; }
+      100% { color: #39ff1466; }
+    }
+
+    /* ── GALLERY ── */
+    .gallery {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 80px 28px 100px;
+      columns: 2 380px;
+      column-gap: 18px;
+    }
+
+    /* ── CARD ── */
+    .card {
+      break-inside: avoid;
+      margin-bottom: 18px;
+      cursor: pointer;
+    }
+
+    /* Neon color per card */
+    .card:nth-child(5n+1) { --neon: #ff00ff; }
+    .card:nth-child(5n+2) { --neon: #00ffff; }
+    .card:nth-child(5n+3) { --neon: #39ff14; }
+    .card:nth-child(5n+4) { --neon: #ff6600; }
+    .card:nth-child(5n)   { --neon: #ff0066; }
+
+    /* Slight rotation per card — static on the wrapper */
+    .card:nth-child(4n+1) { transform: rotate(-.9deg);  }
+    .card:nth-child(4n+2) { transform: rotate( .6deg);  }
+    .card:nth-child(4n+3) { transform: rotate(-1.3deg); }
+    .card:nth-child(4n)   { transform: rotate( .4deg);  }
+
+    /* Inner handles opacity + slide-in animation */
+    .card-inner {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity .9s ease, transform .9s ease, box-shadow .3s ease;
+      border: 1px solid var(--neon, #ff00ff);
+      box-shadow:
+        0 0 6px  var(--neon, #ff00ff),
+        0 0 14px var(--neon, #ff00ff)33,
+        inset 0 0 8px var(--neon, #ff00ff)0d;
+      overflow: hidden;
+      position: relative;
+      background: #060606;
+    }
+
+    .card.in .card-inner {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .card:hover .card-inner {
+      box-shadow:
+        0 0 16px var(--neon, #ff00ff),
+        0 0 45px var(--neon, #ff00ff)66,
+        0 0 90px var(--neon, #ff00ff)33,
+        inset 0 0 18px var(--neon, #ff00ff)1a;
+    }
+
+    /* Corner brackets */
+    .card-inner::before {
+      content: '';
+      position: absolute; top: 0; left: 0;
+      width: 18px; height: 18px;
+      border-top: 2px solid var(--neon, #ff00ff);
+      border-left: 2px solid var(--neon, #ff00ff);
+      box-shadow: 2px 2px 8px var(--neon, #ff00ff)55;
+      z-index: 3; pointer-events: none;
+    }
+    .card-inner::after {
+      content: '';
+      position: absolute; bottom: 0; right: 0;
+      width: 18px; height: 18px;
+      border-bottom: 2px solid var(--neon, #ff00ff);
+      border-right: 2px solid var(--neon, #ff00ff);
+      z-index: 3; pointer-events: none;
+    }
+
+    /* ── IMAGE ── */
+    .card-img { position: relative; overflow: hidden; }
+
+    .card-img img {
+      display: block; width: 100%; height: auto;
+      filter: brightness(.82) contrast(1.12) saturate(1.15);
+      transition: filter .4s ease;
+    }
+
+    .card:hover .card-img img {
+      animation: img-glitch .22s steps(3) infinite;
+    }
+
+    @keyframes img-glitch {
+      0%   { transform: translate(0);       filter: brightness(1)    contrast(1.2)  saturate(1.6) hue-rotate(0deg);   }
+      25%  { transform: translate(-3px,1px); filter: brightness(1.1)  contrast(1.45) saturate(2.2) hue-rotate(25deg);  }
+      50%  { transform: translate(3px,-1px); filter: brightness(.92)  contrast(1.55) saturate(1.9) hue-rotate(-18deg); }
+      75%  { transform: translate(-2px,2px); filter: brightness(1.05) contrast(1.35) saturate(2.5) hue-rotate(12deg);  }
+      100% { transform: translate(0);       filter: brightness(1)    contrast(1.2)  saturate(1.6) hue-rotate(0deg);   }
+    }
+
+    /* RGB split overlays */
+    .card-img::before,
+    .card-img::after {
+      content: '';
+      position: absolute; inset: 0;
+      pointer-events: none; z-index: 2;
+      mix-blend-mode: screen;
+      opacity: 0;
+      transition: opacity .15s;
+    }
+
+    .card:hover .card-img::before {
+      background: rgba(0,255,255,.14);
+      opacity: 1;
+      animation: rgb-l .28s steps(4) infinite;
+    }
+
+    .card:hover .card-img::after {
+      background: rgba(255,0,255,.14);
+      opacity: 1;
+      animation: rgb-r .28s steps(4) infinite;
+    }
+
+    @keyframes rgb-l {
+      0%  { transform: translateX(-4px); clip-path: inset(0  0 82% 0); }
+      25% { transform: translateX(-6px); clip-path: inset(28% 0 52% 0); }
+      50% { transform: translateX(-3px); clip-path: inset(63% 0 18% 0); }
+      75% { transform: translateX(-5px); clip-path: inset(12% 0 70% 0); }
+    }
+
+    @keyframes rgb-r {
+      0%  { transform: translateX(4px);  clip-path: inset(22% 0 62% 0); }
+      25% { transform: translateX(6px);  clip-path: inset(56% 0 28% 0); }
+      50% { transform: translateX(3px);  clip-path: inset(80% 0  5% 0); }
+      75% { transform: translateX(5px);  clip-path: inset(42% 0 42% 0); }
+    }
+
+    /* ── CAPTION ── */
+    .card-caption {
+      padding: 13px 15px 15px;
+    }
+
+    .card-title {
+      display: block;
+      font-size: .78rem;
+      color: #ddd;
+      letter-spacing: .06em;
+      line-height: 1.55;
+    }
+
+    .card:hover .card-title {
+      animation: txt-shake .12s steps(2) infinite;
+      color: #fff;
+    }
+
+    @keyframes txt-shake {
+      0%  { transform: translate(0);       }
+      25% { transform: translate(1px, 0);  }
+      50% { transform: translate(-1px, 1px); }
+      75% { transform: translate(1px,-1px); }
+    }
+
+    .card-year {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: .56rem;
+      color: var(--neon, #ff00ff);
+      text-shadow: 0 0 7px var(--neon, #ff00ff);
+      letter-spacing: .38em;
+      text-transform: uppercase;
+    }
+
+    /* ── LIGHTBOX ── */
+    #lb {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.97); z-index: 600;
+      align-items: center; justify-content: center;
+      flex-direction: column;
+      padding: 60px 80px 60px;
+      border: 1px solid #ff00ff1a;
+    }
+    #lb.open { display: flex; animation: lb-in .25s ease; }
+
+    @keyframes lb-in {
+      0%   { opacity: 0; filter: hue-rotate(180deg) brightness(3) blur(4px); }
+      100% { opacity: 1; filter: none; }
+    }
+
+    #lb-wrap {
+      flex: 1; min-height: 0; width: 100%;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    #lb-img {
+      max-width: 100%; max-height: 100%;
+      object-fit: contain; display: block;
+      border: 1px solid #ff00ff33;
+      box-shadow:
+        0 0 30px rgba(255,0,255,.25),
+        0 0 60px rgba(0,255,255,.15),
+        0 28px 80px rgba(0,0,0,.9);
+      transition: opacity .2s;
+    }
+    #lb-img.fade { opacity: 0; }
+
+    .lb-info { text-align: center; padding-top: 22px; flex-shrink: 0; }
+    .lb-title { font-style: italic; font-size: 1rem; color: #eee; letter-spacing: .04em; }
+    .lb-year {
+      font-size: .6rem; color: #00ffff;
+      text-shadow: 0 0 8px #00ffff;
+      letter-spacing: .4em; text-transform: uppercase; margin-top: 8px;
+    }
+
+    #lb-close {
+      position: fixed; top: 18px; right: 22px;
+      background: none; border: 1px solid #ff00ff44; color: #ff00ff55;
+      font-size: 1.6rem; cursor: pointer;
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .2s; z-index: 10;
+    }
+    #lb-close:hover {
+      color: #ff00ff; border-color: #ff00ff;
+      box-shadow: 0 0 14px #ff00ff, inset 0 0 8px #ff00ff22;
+      transform: rotate(90deg);
+    }
+
+    #lb-count {
+      position: fixed; top: 26px; left: 50%; transform: translateX(-50%);
+      font-size: .58rem; color: #39ff1444; letter-spacing: .3em;
+      text-transform: uppercase;
+    }
+
+    .lb-arr {
+      position: fixed; top: 50%; transform: translateY(-50%);
+      background: none; border: 1px solid #222; color: #444;
+      width: 46px; height: 46px; font-size: 1.5rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .2s;
+    }
+    .lb-arr:hover {
+      border-color: #00ffff; color: #00ffff;
+      box-shadow: 0 0 14px #00ffff;
+    }
+    #lb-prev { left: 14px; }
+    #lb-next { right: 14px; }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      padding: 48px 20px 60px;
+      border-top: 1px solid #ff00ff1a;
+    }
+
+    .foot-rule {
+      width: 44px; height: 1px;
+      background: linear-gradient(90deg, #ff00ff, #00ffff);
+      margin: 0 auto 22px;
+      box-shadow: 0 0 10px #ff00ff77;
+    }
+
+    footer p {
+      font-size: .63rem; color: #2a2a2a; letter-spacing: .26em; text-transform: uppercase;
+    }
+
+    footer a { color: #ff00ff44; text-decoration: none; transition: all .2s; }
+    footer a:hover { color: #ff00ff; text-shadow: 0 0 10px #ff00ff; }
+
+    .foot-coords {
+      margin-top: 9px;
+      font-size: .48rem; color: #39ff1422; letter-spacing: .18em;
+      animation: tag-pulse 5s ease-in-out infinite alternate;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 680px) {
+      .gallery { columns: 1; padding: 50px 14px 70px; }
+      header   { padding: 70px 14px 50px; }
+      #lb      { padding: 50px 30px 50px; }
+      .lb-arr  { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="bg-blobs"></div>
+  <h1 class="h-name" data-text="Smartism">Smartism</h1>
+  <div class="h-rule"></div>
+  <p class="h-sub">Original Paintings</p>
+  <p class="h-tag">// SIGNAL DETECTED &nbsp;·&nbsp; 55 WORKS &nbsp;·&nbsp; TRANSMISSION ACTIVE //</p>
+</header>
+
+<div class="gallery" id="gallery"></div>
+
+<div id="lb">
+  <button id="lb-close">✕</button>
+  <span id="lb-count"></span>
+  <button class="lb-arr" id="lb-prev">&#8249;</button>
+  <button class="lb-arr" id="lb-next">&#8250;</button>
+  <div id="lb-wrap"><img id="lb-img" src="" alt=""></div>
+  <div class="lb-info">
+    <p class="lb-title" id="lb-title"></p>
+    <p class="lb-year"  id="lb-year"></p>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-rule"></div>
+  <p>For inquiries: <a href="tel:+31623140683">+31 6 23140683</a></p>
+  <p class="foot-coords">52°22′N 4°54′E &nbsp;·&nbsp; AMSTERDAM &nbsp;·&nbsp; NL</p>
+</footer>
+
+<script>
+const B = 'images/';
+const data = [
+  {y:2017,t:'CT16',                                                                    f:'img-20170929-195624-198_orig.jpg'},
+  {y:2017,t:'Rag',                                                                     f:'img-20170714-090208-885_orig.jpg'},
+  {y:2017,t:'36,187 Innocent Deaths',                                                  f:'img-20170908-102002-463_orig.jpg'},
+  {y:2017,t:'Oblivious',                                                               f:'img-20170817-204718-276_orig.jpg'},
+  {y:2017,t:'Storm Undone',                                                            f:'20170702-121841_orig.jpg'},
+  {y:2017,t:'Self',                                                                    f:'20170514-002203_orig.jpg'},
+  {y:2017,t:'Untitled',                                                                f:'editor/20170511-073303.jpeg'},
+  {y:2017,t:'First Impressions of Earth',                                              f:'editor/20170422-105252.jpeg'},
+  {y:2017,t:'Infundibulum',                                                            f:'img-20170513-122248_orig.jpg'},
+  {y:2017,t:'Clearvoyance',                                                            f:'editor/20170417-192851.jpeg'},
+  {y:2017,t:'Words that Warmed, Woed and Won',                                         f:'editor/20170126-075928.jpeg'},
+  {y:2017,t:'Tranquillo Tres',                                                         f:'editor/20170312-121840.jpeg'},
+  {y:2017,t:'Beatific',                                                                f:'published/20170417-192918.jpeg'},
+  {y:2017,t:'Title Unknown',                                                           f:'editor/20170117-183551.jpeg'},
+  {y:2017,t:'Atavistic',                                                               f:'editor/20161209-001240.jpeg'},
+  {y:2016,t:'Zusterliefde',                                                            f:'20161120-102724-1_orig.jpg'},
+  {y:2016,t:'Lost',                                                                    f:'1481120765.png'},
+  {y:2016,t:'Unknown Equivalent',                                                      f:'1479395060.png'},
+  {y:2016,t:'Drinkende Man bij Molen tijdens Heldere Nacht',                           f:'20161109-223057_orig.jpg'},
+  {y:2016,t:'Pure, Unaltered, Twinge',                                                 f:'1478861217.png'},
+  {y:2016,t:'Sorrow of a Sight-full Sucker',                                           f:'1481120962.png'},
+  {y:2016,t:'Dancing Figurine on Tantalus Tightrope',                                  f:'1478076617.png'},
+  {y:2016,t:'Kiss of an Icosahedron',                                                  f:'1478076520.png'},
+  {y:2016,t:'Heartfelt',                                                               f:'1478076325.png'},
+  {y:2016,t:'Beauty, Forever, Change',                                                 f:'1478076235.png'},
+  {y:2016,t:'Search Into the Self for Unanswered Backlash',                            f:'1481120511.png'},
+  {y:2016,t:'Punanti Punani',                                                          f:'1475503104.png'},
+  {y:2016,t:'Appealing Afterglow in Perpendicular Apocalypse',                         f:'1476974852.png'},
+  {y:2016,t:'Composition B-166ER',                                                     f:'1475067705.png'},
+  {y:2016,t:'Gutting of the Soul / Sweet Bliss in Unexpected Joyfull Triumph',         f:'1475503590.png'},
+  {y:2016,t:'Titus Quietus',                                                           f:'1475503209.png'},
+  {y:2016,t:'Ratsmodee',                                                               f:'20160912-232146-m_orig.jpg'},
+  {y:2016,t:'Untitled',                                                                f:'zijp-uncontrolled-smackbase-2016_orig.jpg'},
+  {y:2016,t:'...',                                                                     f:'20160902-124715_orig.jpg'},
+  {y:2016,t:'Winner Taco',                                                             f:'1475067345.png'},
+  {y:2015,t:'Coronal Mass Ejection',                                                   f:'1475067908.png'},
+  {y:2015,t:'Brainlike Magnet Drain',                                                  f:'1475067940.png'},
+  {y:2015,t:'Looking out over Kinshasa at Dawn',                                       f:'1464267421.png'},
+  {y:2015,t:'Restless Child during Pedicure',                                          f:'1475067974.png'},
+  {y:2014,t:'Dreaming with Daedalus',                                                  f:'3033594_orig.jpg'},
+  {y:2014,t:'Sissi Insists',                                                           f:'5426135_orig.jpg'},
+  {y:2014,t:'Untitled 3.14',                                                           f:'1475067997.png'},
+  {y:2014,t:'Lachend Kind na Schommel',                                                f:'6606979_orig.jpg'},
+  {y:2014,t:'Vagina with Pears',                                                       f:'1259888_orig.jpg'},
+  {y:2014,t:'Composition Nr. -1',                                                      f:'1259794_orig.jpg'},
+  {y:2013,t:'Untitled 36',                                                             f:'1475068024.png'},
+  {y:2013,t:'Fire Rain Burn',                                                          f:'5102898_orig.jpg'},
+  {y:2013,t:'Trauma bij de Koffie',                                                    f:'5466430_orig.jpg'},
+  {y:2012,t:'Superfly',                                                                f:'3573554_orig.jpg'},
+  {y:2011,t:'Voor Mama',                                                               f:'3342544_orig.jpg'},
+  {y:2011,t:'I Choose to See the Beauty',                                              f:'8886774_orig.jpg'},
+  {y:2011,t:'Love is a Four Letter Word',                                              f:'7820743_orig.jpg'},
+  {y:2010,t:"L'art Poer L'art",                                                        f:'1475068071.png'},
+  {y:2010,t:'Komorebi',                                                                f:'1478861399.png'},
+  {y:2008,t:'Bolletje Beschuitweken',                                                  f:'1475068108.png'},
+];
+
+/* ── Build gallery ── */
+const gallery = document.getElementById('gallery');
+const cards   = [];
+data.forEach((p, i) => {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="card-inner">
+      <div class="card-img">
+        <img src="${B + p.f}" alt="${p.t}" loading="lazy" decoding="async">
+      </div>
+      <div class="card-caption">
+        <span class="card-title">${p.t}</span>
+        <span class="card-year">${p.y}</span>
+      </div>
+    </div>`;
+  card.addEventListener('click', () => openLb(i));
+  gallery.appendChild(card);
+  cards.push(card);
+});
+
+/* ── Scroll fade-in ── */
+const io = new IntersectionObserver(entries => {
+  entries.forEach((e, idx) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('in'), idx * 60);
+      io.unobserve(e.target);
+    }
+  });
+}, { threshold: .05, rootMargin: '0px 0px -30px 0px' });
+cards.forEach(c => io.observe(c));
+
+/* ── Lightbox ── */
+const lb    = document.getElementById('lb');
+const lbImg = document.getElementById('lb-img');
+const lbT   = document.getElementById('lb-title');
+const lbY   = document.getElementById('lb-year');
+const lbC   = document.getElementById('lb-count');
+let cur = 0;
+
+function lbLoad(i) {
+  cur = i;
+  lbImg.classList.add('fade');
+  const tmp = new Image();
+  tmp.onload = () => { lbImg.src = B + data[i].f; lbImg.classList.remove('fade'); };
+  tmp.src = B + data[i].f;
+  if (tmp.complete) { lbImg.src = B + data[i].f; lbImg.classList.remove('fade'); }
+  lbT.textContent = data[i].t;
+  lbY.textContent = data[i].y;
+  lbC.textContent = `${i + 1} / ${data.length}`;
+}
+function openLb(i) { lbLoad(i); lb.classList.add('open'); document.body.style.overflow = 'hidden'; }
+function closeLb()  { lb.classList.remove('open'); document.body.style.overflow = ''; }
+
+document.getElementById('lb-close').addEventListener('click', closeLb);
+lb.addEventListener('click', e => { if (e.target === lb) closeLb(); });
+document.getElementById('lb-prev').addEventListener('click', e => {
+  e.stopPropagation(); lbLoad((cur - 1 + data.length) % data.length);
+});
+document.getElementById('lb-next').addEventListener('click', e => {
+  e.stopPropagation(); lbLoad((cur + 1) % data.length);
+});
+document.addEventListener('keydown', e => {
+  if (!lb.classList.contains('open')) return;
+  if (e.key === 'Escape')     closeLb();
+  if (e.key === 'ArrowLeft')  lbLoad((cur - 1 + data.length) % data.length);
+  if (e.key === 'ArrowRight') lbLoad((cur + 1) % data.length);
+});
+</script>
+</body>
+</html>
