@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smartism</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/x-icon"  href="favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --sky:  #00d4ff;
+      --blue: #4080ff;
+      --dim:  rgba(0,212,255,.25);
+      --text: #b8d8f0;
+      --bright: #e8f4ff;
+      --card-bg: rgba(4, 18, 38, 0.88);
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: #020c1a;
+      color: var(--text);
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+    }
+
+    /* ── Starfield canvas ── */
+    #stars {
+      position: fixed; inset: 0;
+      width: 100%; height: 100%;
+      z-index: 0; pointer-events: none;
+    }
+
+    /* ── Nebula blobs (CSS) ── */
+    .nebula {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      overflow: hidden;
+    }
+    .nebula::before {
+      content: '';
+      position: absolute;
+      width: 70vw; height: 60vh;
+      top: -15vh; left: -20vw;
+      background: radial-gradient(ellipse, rgba(30,60,160,.18) 0%, transparent 70%);
+      filter: blur(80px);
+      animation: nebula-drift-a 30s ease-in-out infinite alternate;
+    }
+    .nebula::after {
+      content: '';
+      position: absolute;
+      width: 60vw; height: 70vh;
+      bottom: -20vh; right: -15vw;
+      background: radial-gradient(ellipse, rgba(0,180,120,.12) 0%, transparent 70%);
+      filter: blur(100px);
+      animation: nebula-drift-b 38s ease-in-out infinite alternate;
+    }
+    @keyframes nebula-drift-a {
+      0%   { transform: translate(0, 0)    scale(1);    }
+      100% { transform: translate(8vw,6vh) scale(1.15); }
+    }
+    @keyframes nebula-drift-b {
+      0%   { transform: translate(0, 0)     scale(1);    }
+      100% { transform: translate(-6vw,-8vh) scale(1.1); }
+    }
+
+    /* ── Holographic grid ── */
+    .space-grid {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(0,212,255,.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,255,.018) 1px, transparent 1px);
+      background-size: 55px 55px;
+    }
+
+    /* ── Global radar sweep ── */
+    .radar-sweep {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 1px; z-index: 9990; pointer-events: none;
+      background: linear-gradient(90deg, transparent 0%, rgba(0,212,255,.7) 50%, transparent 100%);
+      animation: radar 10s linear infinite;
+    }
+    @keyframes radar {
+      0%   { top: -2px; opacity: 0; }
+      3%   { opacity: 1; }
+      95%  { opacity: .2; }
+      100% { top: 100vh; opacity: 0; }
+    }
+
+    /* All content above bg layers */
+    header, .gallery, #lb, footer, .hud-bar { position: relative; z-index: 1; }
+
+    /* ═══════════════════════════════════
+       HEADER
+    ═══════════════════════════════════ */
+    header {
+      text-align: center;
+      padding: 100px 20px 70px;
+      border-bottom: 1px solid var(--dim);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Corner HUD marks */
+    header::before, header::after {
+      content: '';
+      position: absolute;
+      width: 24px; height: 24px;
+      top: 24px;
+      border-top: 1px solid var(--sky);
+    }
+    header::before { left: 28px;  border-left:  1px solid var(--sky); }
+    header::after  { right: 28px; border-right: 1px solid var(--sky); }
+
+    .h-eyebrow {
+      font-family: 'Orbitron', monospace;
+      font-size: .58rem;
+      letter-spacing: .45em;
+      text-indent: .45em;
+      color: var(--sky);
+      text-transform: uppercase;
+      opacity: .65;
+      margin-bottom: 26px;
+    }
+
+    .h-name {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(3rem, 8vw, 8rem);
+      font-weight: 700;
+      letter-spacing: .2em;
+      text-indent: .2em;
+      text-transform: uppercase;
+      line-height: 1;
+      color: var(--bright);
+      text-shadow:
+        0 0 30px rgba(0,212,255,.4),
+        0 0 80px rgba(0,212,255,.15);
+      animation: title-glow 5s ease-in-out infinite alternate;
+    }
+    @keyframes title-glow {
+      0%   { text-shadow: 0 0 20px rgba(0,212,255,.3), 0 0 60px rgba(0,212,255,.1); }
+      100% { text-shadow: 0 0 40px rgba(0,212,255,.6), 0 0 100px rgba(0,212,255,.25); }
+    }
+
+    .h-rule {
+      width: 80px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--sky), transparent);
+      margin: 28px auto 24px;
+      box-shadow: 0 0 12px var(--sky);
+    }
+
+    .h-sub {
+      font-family: 'Orbitron', monospace;
+      font-size: .75rem;
+      font-weight: 400;
+      letter-spacing: .55em;
+      text-indent: .55em;
+      text-transform: uppercase;
+      color: var(--sky);
+      opacity: .8;
+    }
+
+    .h-meta {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-top: 28px;
+    }
+    .h-meta span {
+      font-size: .52rem;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: rgba(0,212,255,.35);
+      font-family: 'Orbitron', monospace;
+    }
+    .h-meta span b {
+      color: rgba(0,212,255,.6);
+      font-weight: 400;
+    }
+
+    /* ═══════════════════════════════════
+       HUD status bar
+    ═══════════════════════════════════ */
+    .hud-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 28px;
+      border-bottom: 1px solid rgba(0,212,255,.1);
+      background: rgba(2,12,26,.8);
+      font-family: 'Orbitron', monospace;
+      font-size: .48rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: rgba(0,212,255,.3);
+      backdrop-filter: blur(8px);
+    }
+    .hud-bar .hud-dot {
+      display: inline-block;
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--sky);
+      margin-right: 7px;
+      box-shadow: 0 0 6px var(--sky);
+      animation: dot-pulse 2s ease-in-out infinite;
+    }
+    @keyframes dot-pulse {
+      0%, 100% { opacity: 1; }
+      50%  { opacity: .2; }
+    }
+
+    /* ═══════════════════════════════════
+       GALLERY
+    ═══════════════════════════════════ */
+    .gallery {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 72px 28px 100px;
+      columns: 2 380px;
+      column-gap: 22px;
+    }
+
+    /* ── CARD ── */
+    .card {
+      break-inside: avoid;
+      margin-bottom: 22px;
+      cursor: pointer;
+    }
+
+    /* Float phase per card */
+    .card:nth-child(4n+1) { --fd: 6s;   --fdy: -7px;  --fp: 0s;    }
+    .card:nth-child(4n+2) { --fd: 7.5s; --fdy: -5px;  --fp: -2s;   }
+    .card:nth-child(4n+3) { --fd: 5.5s; --fdy: -9px;  --fp: -3.5s; }
+    .card:nth-child(4n)   { --fd: 8.2s; --fdy: -6px;  --fp: -1.5s; }
+
+    .card-inner {
+      opacity: 0;
+      transform: translateY(28px) scale(.98);
+      transition: opacity .9s ease, transform .9s ease;
+      background: var(--card-bg);
+      border: 1px solid rgba(0,212,255,.2);
+      box-shadow:
+        0 0 8px rgba(0,212,255,.1),
+        0 4px 30px rgba(0,0,0,.6),
+        inset 0 0 20px rgba(0,212,255,.02);
+      position: relative;
+      backdrop-filter: blur(4px);
+    }
+
+    /* Fade-in + float once visible */
+    .card.in .card-inner {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      animation:
+        card-float var(--fd,6s) ease-in-out infinite var(--fp,0s),
+        card-glow  4s ease-in-out infinite var(--fp,0s);
+    }
+
+    @keyframes card-float {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(var(--fdy,-7px)); }
+    }
+
+    @keyframes card-glow {
+      0%, 100% {
+        box-shadow:
+          0 0 6px  rgba(0,212,255,.12),
+          0 4px 28px rgba(0,0,0,.6),
+          inset 0 0 16px rgba(0,212,255,.02);
+        border-color: rgba(0,212,255,.18);
+      }
+      50% {
+        box-shadow:
+          0 0 18px rgba(0,212,255,.28),
+          0 4px 36px rgba(0,0,0,.7),
+          inset 0 0 24px rgba(0,212,255,.05);
+        border-color: rgba(0,212,255,.4);
+      }
+    }
+
+    /* Hover: arrest float, boost glow */
+    .card:hover .card-inner {
+      animation-play-state: paused;
+      border-color: rgba(0,212,255,.7);
+      box-shadow:
+        0 0 24px rgba(0,212,255,.4),
+        0 0 60px rgba(0,212,255,.15),
+        0 8px 40px rgba(0,0,0,.7),
+        inset 0 0 30px rgba(0,212,255,.07);
+      transform: translateY(-4px) scale(1.005) !important;
+    }
+
+    /* Corner marks */
+    .card-inner::before {
+      content: '';
+      position: absolute; top: 0; left: 0; z-index: 4; pointer-events: none;
+      width: 16px; height: 16px;
+      border-top: 1px solid rgba(0,212,255,.6);
+      border-left: 1px solid rgba(0,212,255,.6);
+    }
+    .card-inner::after {
+      content: '';
+      position: absolute; bottom: 0; right: 0; z-index: 4; pointer-events: none;
+      width: 16px; height: 16px;
+      border-bottom: 1px solid rgba(0,212,255,.6);
+      border-right: 1px solid rgba(0,212,255,.6);
+    }
+
+    /* ── IMAGE ── */
+    .card-img {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-img img {
+      display: block; width: 100%; height: auto;
+      filter: brightness(.85) contrast(1.05) saturate(.88);
+      transition: filter .5s ease, transform .6s ease;
+    }
+    .card:hover .card-img img {
+      filter: brightness(.98) contrast(1.08) saturate(1.05);
+      transform: scale(1.03);
+    }
+
+    /* Scan-line sweep on hover */
+    .card-img::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent 0%, rgba(0,212,255,.9) 50%, transparent 100%);
+      z-index: 3; pointer-events: none;
+      opacity: 0;
+    }
+    .card:hover .card-img::before {
+      animation: scan-sweep .65s ease-out forwards;
+    }
+    @keyframes scan-sweep {
+      0%   { top: 0%;   opacity: 1; }
+      85%  { opacity: .8; }
+      100% { top: 100%; opacity: 0; }
+    }
+
+    /* Overlay vignette */
+    .card-img::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(
+        to top,
+        rgba(2,12,26,.55) 0%,
+        rgba(2,12,26,.05) 40%,
+        transparent 100%
+      );
+      pointer-events: none;
+    }
+
+    /* ── CAPTION ── */
+    .card-caption {
+      padding: 14px 16px 18px;
+      border-top: 1px solid rgba(0,212,255,.08);
+    }
+
+    .catalog-num {
+      display: block;
+      font-family: 'Orbitron', monospace;
+      font-size: .44rem;
+      letter-spacing: .3em;
+      color: rgba(0,212,255,.4);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+
+    .card-title {
+      display: block;
+      font-size: .85rem;
+      font-weight: 400;
+      color: var(--bright);
+      letter-spacing: .04em;
+      line-height: 1.5;
+    }
+
+    .card-year {
+      display: inline-block;
+      margin-top: 7px;
+      font-family: 'Orbitron', monospace;
+      font-size: .5rem;
+      font-weight: 400;
+      color: var(--sky);
+      letter-spacing: .3em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border: 1px solid rgba(0,212,255,.25);
+      background: rgba(0,212,255,.05);
+    }
+
+    /* ═══════════════════════════════════
+       LIGHTBOX
+    ═══════════════════════════════════ */
+    #lb {
+      display: none; position: fixed; inset: 0;
+      background: rgba(1,8,20,.97);
+      z-index: 600;
+      align-items: center; justify-content: center;
+      flex-direction: column;
+      padding: 60px 80px 60px;
+      border: 1px solid rgba(0,212,255,.1);
+    }
+    #lb.open { display: flex; animation: lb-in .3s ease; }
+
+    @keyframes lb-in {
+      0%   { opacity: 0; filter: brightness(2) blur(10px); }
+      100% { opacity: 1; filter: none; }
+    }
+
+    #lb-wrap {
+      flex: 1; min-height: 0; width: 100%;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    #lb-img {
+      max-width: 100%; max-height: 100%;
+      object-fit: contain; display: block;
+      border: 1px solid rgba(0,212,255,.2);
+      box-shadow:
+        0 0 40px rgba(0,212,255,.2),
+        0 0 100px rgba(0,100,200,.15),
+        0 30px 80px rgba(0,0,0,.9);
+      transition: opacity .2s;
+    }
+    #lb-img.fade { opacity: 0; }
+
+    .lb-info { text-align: center; padding-top: 22px; flex-shrink: 0; }
+    .lb-title {
+      font-size: 1rem; font-weight: 400;
+      color: var(--bright);
+      letter-spacing: .05em;
+    }
+    .lb-year {
+      display: inline-block;
+      font-family: 'Orbitron', monospace;
+      font-size: .55rem;
+      color: var(--sky);
+      letter-spacing: .35em;
+      text-transform: uppercase;
+      margin-top: 10px;
+      padding: 3px 12px;
+      border: 1px solid rgba(0,212,255,.3);
+      background: rgba(0,212,255,.05);
+    }
+
+    #lb-close {
+      position: fixed; top: 18px; right: 22px;
+      background: rgba(0,212,255,.05);
+      border: 1px solid rgba(0,212,255,.3);
+      color: rgba(0,212,255,.5);
+      font-size: 1.5rem; cursor: pointer;
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .2s; z-index: 10;
+      font-family: 'Orbitron', monospace;
+    }
+    #lb-close:hover {
+      color: var(--sky); border-color: var(--sky);
+      box-shadow: 0 0 16px rgba(0,212,255,.5);
+      transform: rotate(90deg);
+    }
+
+    #lb-count {
+      position: fixed; top: 26px; left: 50%; transform: translateX(-50%);
+      font-family: 'Orbitron', monospace;
+      font-size: .52rem; color: rgba(0,212,255,.35);
+      letter-spacing: .3em; text-transform: uppercase;
+    }
+
+    .lb-arr {
+      position: fixed; top: 50%; transform: translateY(-50%);
+      background: rgba(0,212,255,.04);
+      border: 1px solid rgba(0,212,255,.2);
+      color: rgba(0,212,255,.4);
+      width: 46px; height: 46px; font-size: 1.5rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .25s;
+    }
+    .lb-arr:hover {
+      border-color: var(--sky); color: var(--sky);
+      box-shadow: 0 0 18px rgba(0,212,255,.4);
+    }
+    #lb-prev { left: 14px; }
+    #lb-next { right: 14px; }
+
+    /* ═══════════════════════════════════
+       FOOTER
+    ═══════════════════════════════════ */
+    footer {
+      text-align: center;
+      padding: 48px 20px 60px;
+      border-top: 1px solid rgba(0,212,255,.1);
+    }
+
+    .foot-rule {
+      width: 50px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--sky), transparent);
+      margin: 0 auto 22px;
+      box-shadow: 0 0 10px rgba(0,212,255,.5);
+    }
+
+    footer p {
+      font-family: 'Orbitron', monospace;
+      font-size: .55rem; color: rgba(0,212,255,.25);
+      letter-spacing: .28em; text-transform: uppercase;
+    }
+    footer a { color: rgba(0,212,255,.4); text-decoration: none; transition: all .2s; }
+    footer a:hover { color: var(--sky); text-shadow: 0 0 10px var(--sky); }
+
+    .foot-coords {
+      margin-top: 10px;
+      font-size: .46rem; color: rgba(0,212,255,.15);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 680px) {
+      .gallery { columns: 1; padding: 50px 14px 70px; }
+      header   { padding: 70px 14px 50px; }
+      #lb      { padding: 50px 30px 50px; }
+      .lb-arr  { display: none; }
+      .h-meta  { gap: 16px; flex-wrap: wrap; justify-content: center; }
+      .hud-bar .hud-right { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Starfield -->
+<canvas id="stars"></canvas>
+
+<!-- Nebula + grid overlays -->
+<div class="nebula"></div>
+<div class="space-grid"></div>
+
+<!-- Ambient radar sweep -->
+<div class="radar-sweep"></div>
+
+<header>
+  <p class="h-eyebrow">Deep Space Artifact Archive &nbsp;·&nbsp; Station Smartism</p>
+  <h1 class="h-name">Smartism</h1>
+  <div class="h-rule"></div>
+  <p class="h-sub">Original Paintings</p>
+  <div class="h-meta">
+    <span>Objects <b>55</b></span>
+    <span>Span <b>2008 – 2017</b></span>
+    <span>Medium <b>Mixed</b></span>
+    <span>Origin <b>Earth / NL</b></span>
+  </div>
+</header>
+
+<div class="hud-bar">
+  <span><span class="hud-dot"></span>Collection online</span>
+  <span>52°22′N &nbsp;4°54′E</span>
+  <span class="hud-right">Signal stable</span>
+</div>
+
+<div class="gallery" id="gallery"></div>
+
+<div id="lb">
+  <button id="lb-close">✕</button>
+  <span id="lb-count"></span>
+  <button class="lb-arr" id="lb-prev">&#8249;</button>
+  <button class="lb-arr" id="lb-next">&#8250;</button>
+  <div id="lb-wrap"><img id="lb-img" src="" alt=""></div>
+  <div class="lb-info">
+    <p class="lb-title" id="lb-title"></p>
+    <p class="lb-year"  id="lb-year"></p>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-rule"></div>
+  <p>For inquiries: <a href="tel:+31623140683">+31 6 23140683</a></p>
+  <p class="foot-coords">52°22′N 4°54′E &nbsp;·&nbsp; Amsterdam &nbsp;·&nbsp; Earth</p>
+</footer>
+
+<script>
+/* ── Starfield ── */
+(function () {
+  const canvas = document.getElementById('stars');
+  const ctx = canvas.getContext('2d');
+
+  function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  class Star {
+    constructor() { this.reset(true); }
+    reset(initial) {
+      this.x     = Math.random() * canvas.width;
+      this.y     = initial ? Math.random() * canvas.height : Math.random() * canvas.height;
+      this.r     = Math.random() * 1.4 + 0.1;
+      this.alpha = Math.random() * 0.7 + 0.05;
+      this.dir   = Math.random() > .5 ? 1 : -1;
+      this.speed = Math.random() * 0.004 + 0.001;
+      this.drift = (Math.random() - 0.5) * 0.025;
+      this.hue   = Math.random() > .85 ? `rgba(180,220,255,` : `rgba(210,230,255,`;
+    }
+    tick() {
+      this.alpha += this.dir * this.speed;
+      if (this.alpha > .85 || this.alpha < .04) this.dir *= -1;
+      this.x += this.drift;
+      if (this.x < 0 || this.x > canvas.width) this.drift *= -1;
+    }
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+      ctx.fillStyle = this.hue + this.alpha.toFixed(2) + ')';
+      ctx.fill();
+    }
+  }
+
+  const stars = Array.from({ length: 260 }, () => new Star());
+
+  function frame() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    stars.forEach(s => { s.tick(); s.draw(); });
+    requestAnimationFrame(frame);
+  }
+
+  window.addEventListener('resize', () => {
+    resize();
+    stars.forEach(s => s.reset(true));
+  });
+  resize();
+  frame();
+})();
+
+/* ── Gallery ── */
+const B = 'images/';
+const data = [
+  {y:2017,t:'CT16',                                                                    f:'img-20170929-195624-198_orig.jpg'},
+  {y:2017,t:'Rag',                                                                     f:'img-20170714-090208-885_orig.jpg'},
+  {y:2017,t:'36,187 Innocent Deaths',                                                  f:'img-20170908-102002-463_orig.jpg'},
+  {y:2017,t:'Oblivious',                                                               f:'img-20170817-204718-276_orig.jpg'},
+  {y:2017,t:'Storm Undone',                                                            f:'20170702-121841_orig.jpg'},
+  {y:2017,t:'Self',                                                                    f:'20170514-002203_orig.jpg'},
+  {y:2017,t:'Untitled',                                                                f:'editor/20170511-073303.jpeg'},
+  {y:2017,t:'First Impressions of Earth',                                              f:'editor/20170422-105252.jpeg'},
+  {y:2017,t:'Infundibulum',                                                            f:'img-20170513-122248_orig.jpg'},
+  {y:2017,t:'Clearvoyance',                                                            f:'editor/20170417-192851.jpeg'},
+  {y:2017,t:'Words that Warmed, Woed and Won',                                         f:'editor/20170126-075928.jpeg'},
+  {y:2017,t:'Tranquillo Tres',                                                         f:'editor/20170312-121840.jpeg'},
+  {y:2017,t:'Beatific',                                                                f:'published/20170417-192918.jpeg'},
+  {y:2017,t:'Title Unknown',                                                           f:'editor/20170117-183551.jpeg'},
+  {y:2017,t:'Atavistic',                                                               f:'editor/20161209-001240.jpeg'},
+  {y:2016,t:'Zusterliefde',                                                            f:'20161120-102724-1_orig.jpg'},
+  {y:2016,t:'Lost',                                                                    f:'1481120765.png'},
+  {y:2016,t:'Unknown Equivalent',                                                      f:'1479395060.png'},
+  {y:2016,t:'Drinkende Man bij Molen tijdens Heldere Nacht',                           f:'20161109-223057_orig.jpg'},
+  {y:2016,t:'Pure, Unaltered, Twinge',                                                 f:'1478861217.png'},
+  {y:2016,t:'Sorrow of a Sight-full Sucker',                                           f:'1481120962.png'},
+  {y:2016,t:'Dancing Figurine on Tantalus Tightrope',                                  f:'1478076617.png'},
+  {y:2016,t:'Kiss of an Icosahedron',                                                  f:'1478076520.png'},
+  {y:2016,t:'Heartfelt',                                                               f:'1478076325.png'},
+  {y:2016,t:'Beauty, Forever, Change',                                                 f:'1478076235.png'},
+  {y:2016,t:'Search Into the Self for Unanswered Backlash',                            f:'1481120511.png'},
+  {y:2016,t:'Punanti Punani',                                                          f:'1475503104.png'},
+  {y:2016,t:'Appealing Afterglow in Perpendicular Apocalypse',                         f:'1476974852.png'},
+  {y:2016,t:'Composition B-166ER',                                                     f:'1475067705.png'},
+  {y:2016,t:'Gutting of the Soul / Sweet Bliss in Unexpected Joyfull Triumph',         f:'1475503590.png'},
+  {y:2016,t:'Titus Quietus',                                                           f:'1475503209.png'},
+  {y:2016,t:'Ratsmodee',                                                               f:'20160912-232146-m_orig.jpg'},
+  {y:2016,t:'Untitled',                                                                f:'zijp-uncontrolled-smackbase-2016_orig.jpg'},
+  {y:2016,t:'...',                                                                     f:'20160902-124715_orig.jpg'},
+  {y:2016,t:'Winner Taco',                                                             f:'1475067345.png'},
+  {y:2015,t:'Coronal Mass Ejection',                                                   f:'1475067908.png'},
+  {y:2015,t:'Brainlike Magnet Drain',                                                  f:'1475067940.png'},
+  {y:2015,t:'Looking out over Kinshasa at Dawn',                                       f:'1464267421.png'},
+  {y:2015,t:'Restless Child during Pedicure',                                          f:'1475067974.png'},
+  {y:2014,t:'Dreaming with Daedalus',                                                  f:'3033594_orig.jpg'},
+  {y:2014,t:'Sissi Insists',                                                           f:'5426135_orig.jpg'},
+  {y:2014,t:'Untitled 3.14',                                                           f:'1475067997.png'},
+  {y:2014,t:'Lachend Kind na Schommel',                                                f:'6606979_orig.jpg'},
+  {y:2014,t:'Vagina with Pears',                                                       f:'1259888_orig.jpg'},
+  {y:2014,t:'Composition Nr. -1',                                                      f:'1259794_orig.jpg'},
+  {y:2013,t:'Untitled 36',                                                             f:'1475068024.png'},
+  {y:2013,t:'Fire Rain Burn',                                                          f:'5102898_orig.jpg'},
+  {y:2013,t:'Trauma bij de Koffie',                                                    f:'5466430_orig.jpg'},
+  {y:2012,t:'Superfly',                                                                f:'3573554_orig.jpg'},
+  {y:2011,t:'Voor Mama',                                                               f:'3342544_orig.jpg'},
+  {y:2011,t:'I Choose to See the Beauty',                                              f:'8886774_orig.jpg'},
+  {y:2011,t:'Love is a Four Letter Word',                                              f:'7820743_orig.jpg'},
+  {y:2010,t:"L'art Poer L'art",                                                        f:'1475068071.png'},
+  {y:2010,t:'Komorebi',                                                                f:'1478861399.png'},
+  {y:2008,t:'Bolletje Beschuitweken',                                                  f:'1475068108.png'},
+];
+
+const gallery = document.getElementById('gallery');
+const cards   = [];
+
+data.forEach((p, i) => {
+  const num  = String(i + 1).padStart(3, '0');
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="card-inner">
+      <div class="card-img">
+        <img src="${B + p.f}" alt="${p.t}" loading="lazy" decoding="async">
+      </div>
+      <div class="card-caption">
+        <span class="catalog-num">Artifact ${num}</span>
+        <span class="card-title">${p.t}</span>
+        <span class="card-year">${p.y}</span>
+      </div>
+    </div>`;
+  card.addEventListener('click', () => openLb(i));
+  gallery.appendChild(card);
+  cards.push(card);
+});
+
+/* ── Scroll fade-in ── */
+const io = new IntersectionObserver(entries => {
+  entries.forEach((e, idx) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('in'), idx * 65);
+      io.unobserve(e.target);
+    }
+  });
+}, { threshold: .05, rootMargin: '0px 0px -30px 0px' });
+cards.forEach(c => io.observe(c));
+
+/* ── Lightbox ── */
+const lb    = document.getElementById('lb');
+const lbImg = document.getElementById('lb-img');
+const lbT   = document.getElementById('lb-title');
+const lbY   = document.getElementById('lb-year');
+const lbC   = document.getElementById('lb-count');
+let cur = 0;
+
+function lbLoad(i) {
+  cur = i;
+  lbImg.classList.add('fade');
+  const tmp = new Image();
+  tmp.onload = () => { lbImg.src = B + data[i].f; lbImg.classList.remove('fade'); };
+  tmp.src = B + data[i].f;
+  if (tmp.complete) { lbImg.src = B + data[i].f; lbImg.classList.remove('fade'); }
+  lbT.textContent = data[i].t;
+  lbY.textContent = data[i].y;
+  lbC.textContent = `${i + 1} / ${data.length}`;
+}
+function openLb(i)  { lbLoad(i); lb.classList.add('open'); document.body.style.overflow = 'hidden'; }
+function closeLb()  { lb.classList.remove('open'); document.body.style.overflow = ''; }
+
+document.getElementById('lb-close').addEventListener('click', closeLb);
+lb.addEventListener('click', e => { if (e.target === lb) closeLb(); });
+document.getElementById('lb-prev').addEventListener('click', e => {
+  e.stopPropagation(); lbLoad((cur - 1 + data.length) % data.length);
+});
+document.getElementById('lb-next').addEventListener('click', e => {
+  e.stopPropagation(); lbLoad((cur + 1) % data.length);
+});
+document.addEventListener('keydown', e => {
+  if (!lb.classList.contains('open')) return;
+  if (e.key === 'Escape')     closeLb();
+  if (e.key === 'ArrowLeft')  lbLoad((cur - 1 + data.length) % data.length);
+  if (e.key === 'ArrowRight') lbLoad((cur + 1) % data.length);
+});
+</script>
+</body>
+</html>
