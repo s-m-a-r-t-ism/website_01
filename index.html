@@ -158,6 +158,24 @@
       .gallery { columns: 1; padding: 50px 20px 70px; }
       header   { padding: 72px 20px 52px; }
     }
+
+    /* ── Page navigation ── */
+    .page-nav {
+      display: flex; justify-content: center; align-items: center; gap: 8px;
+      padding: 32px 0 36px;
+      border-bottom: 1px solid #111;
+    }
+    .pn {
+      display: flex; align-items: center; justify-content: center;
+      width: 52px; height: 52px;
+      color: #272727;
+      text-decoration: none;
+      transition: color .25s;
+      border: 1px solid #151515;
+    }
+    .pn svg { width: 22px; height: 22px; }
+    .pn:hover { color: #555; border-color: #333; }
+    .pn.pn-active { color: var(--gold); border-color: #2a2218; }
   </style>
 </head>
 <body>
@@ -167,6 +185,18 @@
   <div class="h-rule"></div>
   <p class="h-sub">Original Paintings</p>
 </header>
+
+<nav class="page-nav">
+  <a href="version4.html" class="pn pn-active" title="">
+    <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.2"/></svg>
+  </a>
+  <a href="version7.html" class="pn" title="">
+    <svg viewBox="0 0 16 16" fill="none"><polygon points="8,2 14.5,13.5 1.5,13.5" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+  </a>
+  <a href="version8.html" class="pn" title="">
+    <svg viewBox="0 0 16 16" fill="none"><polygon points="8,1.5 14.5,8 8,14.5 1.5,8" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+  </a>
+</nav>
 
 <div class="gallery" id="gallery"></div>
 
