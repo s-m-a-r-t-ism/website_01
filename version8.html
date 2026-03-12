@@ -22,7 +22,11 @@
     html { scroll-behavior: smooth; }
 
     body {
-      background: #020c1a;
+      background:
+        radial-gradient(ellipse 85% 55% at 15% 18%, rgba(32,6,72,.52)   0%, transparent 60%),
+        radial-gradient(ellipse 70% 60% at 85% 82%, rgba(0,20,58,.55)   0%, transparent 58%),
+        radial-gradient(ellipse 55% 65% at 55% 48%, rgba(4,10,28,.85)   0%, transparent 72%),
+        #03080f;
       color: var(--text);
       font-family: 'Space Grotesk', system-ui, sans-serif;
       font-weight: 300;
@@ -36,37 +40,68 @@
       z-index: 0; pointer-events: none;
     }
 
-    /* ── Nebula blobs (CSS) ── */
-    .nebula {
-      position: fixed; inset: 0; z-index: 0; pointer-events: none;
-      overflow: hidden;
+    /* ── Cosmic dust canvas ── */
+    #dust {
+      position: fixed; inset: 0;
+      width: 100%; height: 100%;
+      z-index: 0; pointer-events: none;
     }
-    .nebula::before {
-      content: '';
-      position: absolute;
-      width: 70vw; height: 60vh;
-      top: -15vh; left: -20vw;
-      background: radial-gradient(ellipse, rgba(30,60,160,.18) 0%, transparent 70%);
-      filter: blur(80px);
-      animation: nebula-drift-a 30s ease-in-out infinite alternate;
+
+    /* ── Deep space nebula clouds ── */
+    .nebula-layer {
+      position: fixed; inset: 0; z-index: 0;
+      pointer-events: none; overflow: hidden;
     }
-    .nebula::after {
-      content: '';
-      position: absolute;
-      width: 60vw; height: 70vh;
-      bottom: -20vh; right: -15vw;
-      background: radial-gradient(ellipse, rgba(0,180,120,.12) 0%, transparent 70%);
+    .nb { position: absolute; border-radius: 50%; }
+
+    /* Deep violet — upper left */
+    .nb1 {
+      width: 88vw; height: 68vh; top: -28vh; left: -28vw;
+      background: radial-gradient(ellipse, rgba(52,8,115,.24)  0%, transparent 68%);
+      filter: blur(90px);
+      animation: nb1 42s ease-in-out infinite alternate;
+    }
+    /* Dark teal — lower right */
+    .nb2 {
+      width: 68vw; height: 78vh; bottom: -28vh; right: -22vw;
+      background: radial-gradient(ellipse, rgba(0,80,105,.22)  0%, transparent 65%);
+      filter: blur(110px);
+      animation: nb2 55s ease-in-out infinite alternate;
+    }
+    /* Deep indigo — upper right */
+    .nb3 {
+      width: 58vw; height: 62vh; top: -12vh; right: -12vw;
+      background: radial-gradient(ellipse, rgba(28,8,88,.20)   0%, transparent 65%);
       filter: blur(100px);
-      animation: nebula-drift-b 38s ease-in-out infinite alternate;
+      animation: nb3 47s ease-in-out infinite alternate;
     }
-    @keyframes nebula-drift-a {
-      0%   { transform: translate(0, 0)    scale(1);    }
-      100% { transform: translate(8vw,6vh) scale(1.15); }
+    /* Purple-magenta — mid left */
+    .nb4 {
+      width: 48vw; height: 58vh; top: 22vh; left: -8vw;
+      background: radial-gradient(ellipse, rgba(70,5,58,.16)   0%, transparent 65%);
+      filter: blur(95px);
+      animation: nb4 36s ease-in-out infinite alternate;
     }
-    @keyframes nebula-drift-b {
-      0%   { transform: translate(0, 0)     scale(1);    }
-      100% { transform: translate(-6vw,-8vh) scale(1.1); }
+    /* Cosmic teal — lower left */
+    .nb5 {
+      width: 78vw; height: 48vh; bottom: 2vh; left: -18vw;
+      background: radial-gradient(ellipse, rgba(0,105,90,.14)  0%, transparent 65%);
+      filter: blur(120px);
+      animation: nb5 62s ease-in-out infinite alternate;
     }
+    /* Blue-indigo — center deep */
+    .nb6 {
+      width: 52vw; height: 52vh; top: 32vh; left: 22vw;
+      background: radial-gradient(ellipse, rgba(12,28,95,.18)  0%, transparent 65%);
+      filter: blur(130px);
+      animation: nb6 70s ease-in-out infinite alternate;
+    }
+    @keyframes nb1 { 0%{transform:translate(0,0) scale(1)}     100%{transform:translate(6vw,8vh)   scale(1.12)} }
+    @keyframes nb2 { 0%{transform:translate(0,0) scale(1)}     100%{transform:translate(-7vw,-6vh) scale(1.08)} }
+    @keyframes nb3 { 0%{transform:translate(0,0) scale(1)}     100%{transform:translate(-5vw,7vh)  scale(1.10)} }
+    @keyframes nb4 { 0%{transform:translate(0,0) scale(1)}     100%{transform:translate(8vw,-4vh)  scale(1.15)} }
+    @keyframes nb5 { 0%{transform:translate(0,0) scale(1)}     100%{transform:translate(5vw,-5vh)  scale(1.06)} }
+    @keyframes nb6 { 0%{transform:translate(0,0) scale(1)}     100%{transform:translate(-4vw,6vh)  scale(1.20)} }
 
     /* ── Holographic grid ── */
     .space-grid {
@@ -231,11 +266,11 @@
       cursor: pointer;
     }
 
-    /* Float phase per card */
-    .card:nth-child(4n+1) { --fd: 6s;   --fdy: -7px;  --fp: 0s;    }
-    .card:nth-child(4n+2) { --fd: 7.5s; --fdy: -5px;  --fp: -2s;   }
-    .card:nth-child(4n+3) { --fd: 5.5s; --fdy: -9px;  --fp: -3.5s; }
-    .card:nth-child(4n)   { --fd: 8.2s; --fdy: -6px;  --fp: -1.5s; }
+    /* Float phase per card — slow, dreamy, zero synchronisation */
+    .card:nth-child(4n+1) { --fd: 9s;   --fdy: -10px; --fp: 0s;    }
+    .card:nth-child(4n+2) { --fd: 12s;  --fdy: -7px;  --fp: -3.2s; }
+    .card:nth-child(4n+3) { --fd: 7.5s; --fdy: -13px; --fp: -5.1s; }
+    .card:nth-child(4n)   { --fd: 14s;  --fdy: -9px;  --fp: -1.8s; }
 
     .card-inner {
       opacity: 0;
@@ -537,21 +572,33 @@
 <!-- Starfield -->
 <canvas id="stars"></canvas>
 
-<!-- Nebula + grid overlays -->
-<div class="nebula"></div>
+<!-- Deep space nebula clouds — 6 coloured blobs -->
+<div class="nebula-layer">
+  <div class="nb nb1"></div>
+  <div class="nb nb2"></div>
+  <div class="nb nb3"></div>
+  <div class="nb nb4"></div>
+  <div class="nb nb5"></div>
+  <div class="nb nb6"></div>
+</div>
+
+<!-- Holographic grid -->
 <div class="space-grid"></div>
+
+<!-- Cosmic dust -->
+<canvas id="dust"></canvas>
 
 <!-- Ambient radar sweep -->
 <div class="radar-sweep"></div>
 
 <header>
-  <p class="h-eyebrow">Deep Space Artifact Archive &nbsp;·&nbsp; Station Smartism</p>
+  <p class="h-eyebrow">Deep Space Artifact Archive &nbsp;·&nbsp; Station Omnipotent</p>
   <h1 class="h-name">Smartism</h1>
   <div class="h-rule"></div>
   <p class="h-sub">Original Paintings</p>
   <div class="h-meta">
     <span>Objects <b>55</b></span>
-    <span>Span <b>2008 – 2017</b></span>
+    <span>Span <b>2008 – Present</b></span>
     <span>Medium <b>Mixed</b></span>
     <span>Origin <b>Earth / NL</b></span>
   </div>
@@ -584,56 +631,180 @@
 </footer>
 
 <script>
-/* ── Starfield ── */
+/* ══════════════════════════════════════
+   STARFIELD — 3-layer + shooting stars
+══════════════════════════════════════ */
 (function () {
   const canvas = document.getElementById('stars');
-  const ctx = canvas.getContext('2d');
+  const ctx    = canvas.getContext('2d');
 
   function resize() {
     canvas.width  = window.innerWidth;
     canvas.height = window.innerHeight;
   }
 
+  /* Layer configs: tiny distant / medium / large bright */
+  const LAYERS = [
+    { count: 330, rMin: .08, rMax: .42, aMin: .03, aMax: .30, spd: .0010 },
+    { count: 100, rMin: .38, rMax: 1.05, aMin: .10, aMax: .62, spd: .0024 },
+    { count:  24, rMin: .95, rMax: 2.20, aMin: .32, aMax: .90, spd: .0035 },
+  ];
+
+  /* Realistic stellar colour distribution */
+  function starHue() {
+    const r = Math.random();
+    if (r < .12) return 'rgba(165,210,255,';   /* blue-white O/B  */
+    if (r < .20) return 'rgba(255,250,215,';   /* warm F/G        */
+    if (r < .26) return 'rgba(205,228,255,';   /* cool white A    */
+    if (r < .30) return 'rgba(255,205,185,';   /* faint orange K  */
+    return 'rgba(222,234,255,';                /* neutral white   */
+  }
+
   class Star {
-    constructor() { this.reset(true); }
-    reset(initial) {
+    constructor(layer) { this.layer = layer; this.reset(); }
+    reset() {
+      const L    = LAYERS[this.layer];
       this.x     = Math.random() * canvas.width;
-      this.y     = initial ? Math.random() * canvas.height : Math.random() * canvas.height;
-      this.r     = Math.random() * 1.4 + 0.1;
-      this.alpha = Math.random() * 0.7 + 0.05;
+      this.y     = Math.random() * canvas.height;
+      this.r     = L.rMin + Math.random() * (L.rMax - L.rMin);
+      this.alpha = L.aMin + Math.random() * (L.aMax - L.aMin);
       this.dir   = Math.random() > .5 ? 1 : -1;
-      this.speed = Math.random() * 0.004 + 0.001;
-      this.drift = (Math.random() - 0.5) * 0.025;
-      this.hue   = Math.random() > .85 ? `rgba(180,220,255,` : `rgba(210,230,255,`;
+      this.speed = L.spd * (.55 + Math.random() * .9);
+      this.drift = (Math.random() - .5) * .016;
+      this.hue   = starHue();
     }
     tick() {
+      const L = LAYERS[this.layer];
       this.alpha += this.dir * this.speed;
-      if (this.alpha > .85 || this.alpha < .04) this.dir *= -1;
+      if (this.alpha > L.aMax || this.alpha < L.aMin) this.dir *= -1;
       this.x += this.drift;
-      if (this.x < 0 || this.x > canvas.width) this.drift *= -1;
+      if (this.x < -2 || this.x > canvas.width + 2) this.drift *= -1;
     }
     draw() {
+      const a = Math.max(0, this.alpha);
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-      ctx.fillStyle = this.hue + this.alpha.toFixed(2) + ')';
+      ctx.fillStyle = this.hue + a.toFixed(3) + ')';
       ctx.fill();
+      /* diffraction cross on large bright stars */
+      if (this.layer === 2 && this.r > 1.4) {
+        const spike = this.r * 5.5;
+        ctx.save();
+        ctx.globalAlpha = a * .32;
+        ctx.strokeStyle = this.hue + '1)';
+        ctx.lineWidth   = .4;
+        ctx.beginPath();
+        ctx.moveTo(this.x - spike, this.y); ctx.lineTo(this.x + spike, this.y);
+        ctx.moveTo(this.x, this.y - spike); ctx.lineTo(this.x, this.y + spike);
+        ctx.stroke();
+        ctx.restore();
+      }
     }
   }
 
-  const stars = Array.from({ length: 260 }, () => new Star());
+  const stars = LAYERS.flatMap((_, li) =>
+    Array.from({ length: LAYERS[li].count }, () => new Star(li))
+  );
+
+  /* ── Shooting stars ── */
+  let sTimer = 280 + Math.random() * 320;
+  let shoot  = null;
+
+  function spawnShoot() {
+    shoot = {
+      x:     Math.random() * canvas.width  * .72,
+      y:     Math.random() * canvas.height * .30,
+      angle: (20 + Math.random() * 30) * Math.PI / 180,
+      speed: 13 + Math.random() * 11,
+      len:   65 + Math.random() * 100,
+      alpha: 1,
+    };
+  }
+
+  function tickShoot() {
+    if (--sTimer <= 0 && !shoot) {
+      spawnShoot();
+      sTimer = 420 + Math.random() * 720;
+    }
+    if (!shoot) return;
+    shoot.x += Math.cos(shoot.angle) * shoot.speed;
+    shoot.y += Math.sin(shoot.angle) * shoot.speed;
+    shoot.alpha -= .020;
+    if (shoot.alpha <= 0 || shoot.x > canvas.width + 60) { shoot = null; return; }
+    const tx = shoot.x - Math.cos(shoot.angle) * shoot.len;
+    const ty = shoot.y - Math.sin(shoot.angle) * shoot.len;
+    const g  = ctx.createLinearGradient(tx, ty, shoot.x, shoot.y);
+    g.addColorStop(0,   'rgba(180,220,255,0)');
+    g.addColorStop(.65, `rgba(220,238,255,${(shoot.alpha * .45).toFixed(3)})`);
+    g.addColorStop(1,   `rgba(255,255,255,${shoot.alpha.toFixed(3)})`);
+    ctx.beginPath();
+    ctx.moveTo(tx, ty);
+    ctx.lineTo(shoot.x, shoot.y);
+    ctx.strokeStyle = g;
+    ctx.lineWidth   = 1.5;
+    ctx.stroke();
+  }
 
   function frame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     stars.forEach(s => { s.tick(); s.draw(); });
+    tickShoot();
     requestAnimationFrame(frame);
   }
 
-  window.addEventListener('resize', () => {
-    resize();
-    stars.forEach(s => s.reset(true));
-  });
-  resize();
-  frame();
+  window.addEventListener('resize', () => { resize(); stars.forEach(s => s.reset()); });
+  resize(); frame();
+})();
+
+/* ══════════════════════════════════════
+   COSMIC DUST — slow-drifting micro-motes
+══════════════════════════════════════ */
+(function () {
+  const canvas = document.getElementById('dust');
+  const ctx    = canvas.getContext('2d');
+
+  function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  class Mote {
+    constructor() { this.reset(true); }
+    reset(init) {
+      this.x     = Math.random() * canvas.width;
+      this.y     = init ? Math.random() * canvas.height : -1;
+      this.r     = Math.random() * .52 + .06;
+      this.alpha = Math.random() * .11 + .015;
+      this.vx    = (Math.random() - .44) * .048 + .016;  /* slight rightward */
+      this.vy    = Math.random() * .035 + .005;           /* gently downward  */
+      this.phase = Math.random() * Math.PI * 2;
+      this.pulse = Math.random() * .007 + .003;
+    }
+    tick() {
+      this.x     += this.vx;
+      this.y     += this.vy;
+      this.phase += this.pulse;
+      if (this.x > canvas.width + 2 || this.y > canvas.height + 2) this.reset(false);
+    }
+    draw() {
+      const a = this.alpha * (.6 + .4 * Math.sin(this.phase));
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(185,218,255,${a.toFixed(3)})`;
+      ctx.fill();
+    }
+  }
+
+  const motes = Array.from({ length: 500 }, () => new Mote());
+
+  function frame() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    motes.forEach(m => { m.tick(); m.draw(); });
+    requestAnimationFrame(frame);
+  }
+
+  window.addEventListener('resize', () => { resize(); motes.forEach(m => m.reset(true)); });
+  resize(); frame();
 })();
 
 /* ── Gallery ── */
