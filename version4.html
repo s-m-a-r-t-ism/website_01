@@ -177,6 +177,98 @@
     .pn svg { width: 22px; height: 22px; }
     .pn:hover { color: #555; border-color: #333; }
     .pn.pn-active { color: var(--gold); border-color: #2a2218; }
+
+    /* ── Secret rune button ── */
+    .rune-gate {
+      display: flex; justify-content: center;
+      padding: 48px 0 18px;
+    }
+    .rune-btn {
+      background: none; border: none; cursor: pointer;
+      color: #0e0e0e; font-size: 1.35rem;
+      line-height: 1; padding: 8px;
+      transition: color .6s, text-shadow .6s, transform .4s;
+    }
+    .rune-btn:hover {
+      color: #3a3226;
+      text-shadow: 0 0 14px rgba(201,169,110,.25);
+      transform: scale(1.15);
+    }
+    .rune-btn:active { transform: scale(.95); }
+
+    /* ── Win95 dialog ── */
+    .w95-overlay {
+      display: none; position: fixed; inset: 0; z-index: 9000;
+      background: rgba(0,0,0,.55);
+      align-items: center; justify-content: center;
+    }
+    .w95-overlay.open { display: flex; }
+
+    .w95-box {
+      background: #c0c0c0;
+      border: 2px solid;
+      border-color: #fff #808080 #808080 #fff;
+      box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #0a0a0a,
+                  4px 4px 0 rgba(0,0,0,.35);
+      font-family: 'MS Sans Serif', 'Arial', sans-serif;
+      min-width: 340px; max-width: 92vw;
+      padding: 3px;
+    }
+
+    .w95-titlebar {
+      background: #000080;
+      color: #fff;
+      font-size: 12px; font-weight: 700;
+      padding: 3px 5px 3px 6px;
+      display: flex; justify-content: space-between; align-items: center;
+      letter-spacing: .02em;
+      user-select: none;
+    }
+    .w95-close {
+      background: #c0c0c0;
+      border: 2px solid;
+      border-color: #fff #808080 #808080 #fff;
+      font-size: 10px; font-weight: 700; font-family: inherit;
+      width: 18px; height: 18px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: #000; line-height: 1; padding: 0;
+    }
+    .w95-close:active {
+      border-color: #808080 #fff #fff #808080;
+    }
+
+    .w95-body {
+      display: flex; align-items: flex-start; gap: 18px;
+      padding: 22px 24px 12px 18px;
+    }
+    .w95-icon {
+      flex-shrink: 0; width: 32px; height: 32px;
+    }
+    .w95-msg {
+      font-size: 12px; color: #000; line-height: 1.45;
+      padding-top: 4px;
+    }
+
+    .w95-actions {
+      display: flex; justify-content: center; gap: 10px;
+      padding: 6px 18px 16px;
+    }
+    .w95-btn {
+      background: #c0c0c0;
+      border: 2px solid;
+      border-color: #fff #808080 #808080 #fff;
+      font-family: 'MS Sans Serif', 'Arial', sans-serif;
+      font-size: 12px; color: #000;
+      padding: 4px 18px; min-width: 90px;
+      cursor: pointer; text-align: center;
+    }
+    .w95-btn:active {
+      border-color: #808080 #fff #fff #808080;
+      padding: 5px 17px 3px 19px;
+    }
+    .w95-btn:focus-visible {
+      outline: 1px dotted #000; outline-offset: -4px;
+    }
   </style>
 </head>
 <body>
@@ -217,6 +309,40 @@
   <div class="foot-rule"></div>
   <p>For inquiries: <a href="tel:+31623140683">+31 6 23140683</a></p>
 </footer>
+
+<!-- Secret gate -->
+<div class="rune-gate">
+  <button class="rune-btn" id="rune-btn" title="">
+    <svg viewBox="0 0 40 56" width="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <!-- Tengwar-inspired glyph -->
+      <path d="M12 4 C12 4 12 52 12 52"/>
+      <path d="M12 8 C20 6 28 10 28 20 C28 28 22 30 12 28"/>
+      <path d="M12 28 C22 26 30 30 30 40 C30 48 24 52 12 50"/>
+      <circle cx="12" cy="4" r="2.2"/>
+    </svg>
+  </button>
+</div>
+
+<!-- Win95 dialog -->
+<div class="w95-overlay" id="w95">
+  <div class="w95-box">
+    <div class="w95-titlebar">
+      <span>I Know Kung Fu</span>
+      <button class="w95-close" id="w95-close">×</button>
+    </div>
+    <div class="w95-body">
+      <svg class="w95-icon" viewBox="0 0 32 32">
+        <rect x="1" y="1" width="30" height="30" rx="3" fill="#000080"/>
+        <text x="16" y="23" text-anchor="middle" fill="#fff" font-size="20" font-weight="700" font-family="serif">!</text>
+      </svg>
+      <div class="w95-msg">What you know you can't explain, but you feel it.<br>You've felt it your entire life.</div>
+    </div>
+    <div class="w95-actions">
+      <button class="w95-btn" id="w95-show">Show Me</button>
+      <button class="w95-btn" id="w95-dawg">Damn Neo you Dawg!</button>
+    </div>
+  </div>
+</div>
 
 <script>
 const B = 'images/';
@@ -343,6 +469,32 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape')     closeLb();
   if (e.key === 'ArrowLeft')  lbLoad((cur - 1 + data.length) % data.length);
   if (e.key === 'ArrowRight') lbLoad((cur + 1) % data.length);
+});
+
+/* ── Secret gate / Win95 dialog ── */
+const w95 = document.getElementById('w95');
+document.getElementById('rune-btn').addEventListener('click', () => w95.classList.add('open'));
+document.getElementById('w95-close').addEventListener('click', () => w95.classList.remove('open'));
+w95.addEventListener('click', e => { if (e.target === w95) w95.classList.remove('open'); });
+
+document.getElementById('w95-show').addEventListener('click', () => {
+  w95.classList.remove('open');
+  document.body.style.transition = 'filter 1.2s ease';
+  document.body.style.filter = 'invert(1) hue-rotate(180deg)';
+  setTimeout(() => { document.body.style.filter = ''; }, 2400);
+});
+document.getElementById('w95-dawg').addEventListener('click', () => {
+  w95.classList.remove('open');
+  document.querySelector('.h-name').style.transition = 'letter-spacing .8s, transform .8s';
+  document.querySelector('.h-name').style.letterSpacing = '1.5em';
+  document.querySelector('.h-name').style.transform = 'scale(1.08)';
+  setTimeout(() => {
+    document.querySelector('.h-name').style.letterSpacing = '';
+    document.querySelector('.h-name').style.transform = '';
+  }, 2000);
+});
+document.addEventListener('keydown', e => {
+  if (w95.classList.contains('open') && e.key === 'Escape') w95.classList.remove('open');
 });
 </script>
 </body>
