@@ -185,16 +185,24 @@
     }
     .rune-btn {
       background: none; border: none; cursor: pointer;
-      color: #1a0505;
+      color: #8b2010;
       line-height: 1; padding: 8px;
       transition: color .6s, filter .6s, transform .4s;
-      filter: drop-shadow(0 0 3px rgba(160,30,10,.2));
+      filter: drop-shadow(0 0 4px rgba(200,50,10,.4))
+             drop-shadow(0 0 10px rgba(180,30,5,.2));
+      animation: rune-pulse 3s ease-in-out infinite;
+    }
+    @keyframes rune-pulse {
+      0%, 100% { filter: drop-shadow(0 0 4px rgba(200,50,10,.4)) drop-shadow(0 0 10px rgba(180,30,5,.2)); }
+      50%      { filter: drop-shadow(0 0 6px rgba(220,60,10,.55)) drop-shadow(0 0 16px rgba(200,40,5,.3)); }
     }
     .rune-btn:hover {
-      color: #7a2018;
-      filter: drop-shadow(0 0 8px rgba(200,45,15,.5))
-             drop-shadow(0 0 22px rgba(180,30,10,.25));
-      transform: scale(1.18);
+      color: #c43a1a;
+      filter: drop-shadow(0 0 10px rgba(240,70,15,.7))
+             drop-shadow(0 0 28px rgba(220,45,10,.4))
+             drop-shadow(0 0 48px rgba(180,25,5,.2));
+      transform: scale(1.2);
+      animation: none;
     }
     .rune-btn:active { transform: scale(.92); }
 
@@ -332,7 +340,7 @@
 <!-- Secret gate -->
 <div class="rune-gate">
   <button class="rune-btn" id="rune-btn" title="">
-    <svg viewBox="0 0 40 56" width="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <svg viewBox="0 0 40 56" width="32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
       <path d="M12 4 C12 4 12 52 12 52"/>
       <path d="M12 8 C20 6 28 10 28 20 C28 28 22 30 12 28"/>
       <path d="M12 28 C22 26 30 30 30 40 C30 48 24 52 12 50"/>
