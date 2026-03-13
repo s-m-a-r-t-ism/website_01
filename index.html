@@ -514,18 +514,29 @@ document.addEventListener('keydown', e => {
 
 /* ── Secret gate / Win95 dialog ── */
 const w95 = document.getElementById('w95');
+const audioShow = new Audio('Spybk.mp3');
+const audioDawg = new Audio('EsNrch_Blswe.mp3');
+audioShow.volume = 1.0;
+audioDawg.volume = 1.0;
+
 document.getElementById('rune-btn').addEventListener('click', () => w95.classList.add('open'));
 document.getElementById('w95-close').addEventListener('click', () => w95.classList.remove('open'));
 w95.addEventListener('click', e => { if (e.target === w95) w95.classList.remove('open'); });
 
 document.getElementById('w95-show').addEventListener('click', () => {
   w95.classList.remove('open');
+  audioDawg.pause(); audioDawg.currentTime = 0;
+  audioShow.currentTime = 0;
+  audioShow.play();
   document.body.style.transition = 'filter 1.2s ease';
   document.body.style.filter = 'invert(1) hue-rotate(180deg)';
   setTimeout(() => { document.body.style.filter = ''; }, 2400);
 });
 document.getElementById('w95-dawg').addEventListener('click', () => {
   w95.classList.remove('open');
+  audioShow.pause(); audioShow.currentTime = 0;
+  audioDawg.currentTime = 0;
+  audioDawg.play();
   document.querySelector('.h-name').style.transition = 'letter-spacing .8s, transform .8s';
   document.querySelector('.h-name').style.letterSpacing = '1.5em';
   document.querySelector('.h-name').style.transform = 'scale(1.08)';
