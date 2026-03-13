@@ -185,22 +185,33 @@
     }
     .rune-btn {
       background: none; border: none; cursor: pointer;
-      color: #8b2010;
+      color: #b03010;
       line-height: 1; padding: 8px;
       transition: color .6s, filter .6s, transform .4s;
-      filter: drop-shadow(0 0 4px rgba(200,50,10,.4))
-             drop-shadow(0 0 10px rgba(180,30,5,.2));
-      animation: rune-pulse 3s ease-in-out infinite;
+      filter: drop-shadow(0 0 5px rgba(255,80,10,.5))
+             drop-shadow(0 0 14px rgba(220,50,5,.3))
+             drop-shadow(0 0 28px rgba(180,30,0,.15));
+      animation: rune-pulse 2.8s ease-in-out infinite;
     }
     @keyframes rune-pulse {
-      0%, 100% { filter: drop-shadow(0 0 4px rgba(200,50,10,.4)) drop-shadow(0 0 10px rgba(180,30,5,.2)); }
-      50%      { filter: drop-shadow(0 0 6px rgba(220,60,10,.55)) drop-shadow(0 0 16px rgba(200,40,5,.3)); }
+      0%, 100% {
+        color: #b03010;
+        filter: drop-shadow(0 0 5px rgba(255,80,10,.5))
+               drop-shadow(0 0 14px rgba(220,50,5,.3))
+               drop-shadow(0 0 28px rgba(180,30,0,.15));
+      }
+      50% {
+        color: #d04418;
+        filter: drop-shadow(0 0 8px rgba(255,100,20,.65))
+               drop-shadow(0 0 20px rgba(240,60,10,.4))
+               drop-shadow(0 0 38px rgba(200,40,5,.2));
+      }
     }
     .rune-btn:hover {
-      color: #c43a1a;
-      filter: drop-shadow(0 0 10px rgba(240,70,15,.7))
-             drop-shadow(0 0 28px rgba(220,45,10,.4))
-             drop-shadow(0 0 48px rgba(180,25,5,.2));
+      color: #e85520;
+      filter: drop-shadow(0 0 12px rgba(255,110,20,.8))
+             drop-shadow(0 0 32px rgba(250,70,10,.5))
+             drop-shadow(0 0 56px rgba(220,40,5,.3));
       transform: scale(1.2);
       animation: none;
     }
@@ -340,11 +351,10 @@
 <!-- Secret gate -->
 <div class="rune-gate">
   <button class="rune-btn" id="rune-btn" title="">
-    <svg viewBox="0 0 40 56" width="32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 4 C12 4 12 52 12 52"/>
-      <path d="M12 8 C20 6 28 10 28 20 C28 28 22 30 12 28"/>
-      <path d="M12 28 C22 26 30 30 30 40 C30 48 24 52 12 50"/>
-      <circle cx="12" cy="4" r="2.2"/>
+    <svg viewBox="0 0 32 44" width="32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M16 44 L16 14"/>
+      <path d="M16 14 L4 2"/>
+      <path d="M16 14 L28 2"/>
     </svg>
   </button>
 </div>
@@ -367,7 +377,6 @@
         <rect x="14.2" y="10" width="3.6" height="11" rx=".4" fill="#000"/>
         <rect x="14.2" y="23" width="3.6" height="3.6" rx=".4" fill="#000"/>
       </svg>
-      <div class="w95-msg">What you know you can't explain, but you feel it.<br>You've felt it your entire life.</div>
     </div>
     <div class="w95-actions">
       <button class="w95-btn" id="w95-show">Show Me</button>
