@@ -155,6 +155,19 @@
     footer p { font-size: .66rem; color: #2e2e2e; letter-spacing: .28em; text-transform: uppercase; }
     footer a  { color: var(--gold); text-decoration: none; }
 
+    /* ── Hit counter ── */
+    .hit-counter {
+      position: fixed; bottom: 10px; left: 14px;
+      font-family: 'Courier New', monospace;
+      font-size: .55rem; color: #1a1a1a;
+      letter-spacing: .12em;
+      opacity: 0;
+      transition: opacity 1.2s ease, color .3s;
+      z-index: 10;
+    }
+    .hit-counter.loaded { opacity: 1; }
+    .hit-counter:hover { color: #333; }
+
     @media (max-width: 680px) {
       .gallery { columns: 1; padding: 50px 20px 70px; }
       header   { padding: 72px 20px 52px; }
@@ -548,6 +561,19 @@ document.getElementById('w95-dawg').addEventListener('click', () => {
 document.addEventListener('keydown', e => {
   if (w95.classList.contains('open') && e.key === 'Escape') w95.classList.remove('open');
 });
+
+/* ── Hit counter ── */
+fetch('https://api.counterapi.dev/v1/smartism-art/visits/up')
+  .then(r => r.json())
+  .then(d => {
+    const el = document.getElementById('hits');
+    el.textContent = d.count.toLocaleString();
+    el.parentElement.classList.add('loaded');
+  })
+  .catch(() => {});
 </script>
+
+<div class="hit-counter" id="hit-wrap"><span id="hits"></span></div>
+
 </body>
 </html>
